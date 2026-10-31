@@ -1,5 +1,5 @@
 # NAME: GlobalMedia
-# CONVERTED from blackmatrix7 ios_rule_script (QuantumultX) at 2026-10-31 11:33
+# CONVERTED from blackmatrix7 ios_rule_script (QuantumultX) at 2026-10-31 14:40
 # policy: 落地
 DOMAIN,ai.google.dev,落地
 DOMAIN,aistudio.google.com,落地
