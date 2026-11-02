@@ -2,7 +2,6 @@
 #!desc = 检测视频平台与美图官网的网络连通性、HTTP 状态和响应耗时；不检测或绕过会员鉴权
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
-#!icon = https://raw.githubusercontent.com/ashun520/loon-rules/main/VIPLab/icon.png
 #!system = iOS,iPadOS,macOS
 #!loon_version = 3.5.1(983)
 #!tag = 工具,网络检测,视频,美图
