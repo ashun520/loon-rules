@@ -1,0 +1,19 @@
+#!name = VIP Lab - 平台连通性检测
+#!desc = 检测视频平台与美图官网的网络连通性、HTTP 状态和响应耗时；不检测或绕过会员鉴权
+#!author = ashun520
+#!homepage = https://github.com/ashun520/loon-rules
+#!icon = https://raw.githubusercontent.com/ashun520/loon-rules/main/VIPLab/icon.png
+#!system = iOS,iPadOS,macOS
+#!loon_version = 3.5.1(983)
+#!tag = 工具,网络检测,视频,美图
+#!type = normal
+
+[Argument]
+iqiyiUrl = input,"https://www.iqiyi.com/",tag=爱奇艺检测地址,desc=可填写你希望检测的 HTTP 或 HTTPS 地址
+tencentUrl = input,"https://v.qq.com/",tag=腾讯视频检测地址,desc=可填写你希望检测的 HTTP 或 HTTPS 地址
+youkuUrl = input,"https://www.youku.com/",tag=优酷检测地址,desc=可填写你希望检测的 HTTP 或 HTTPS 地址
+meituUrl = input,"https://www.meitu.com/",tag=美图官网检测地址,desc=默认检测美图公司官网
+timeoutMs = select,5000,8000,10000,type=number,tag=单次超时毫秒
+
+[Script]
+generic then script("https://raw.githubusercontent.com/ashun520/loon-rules/main/VIPLab/VIPLab.js", { ${iqiyiUrl}, ${tencentUrl}, ${youkuUrl}, ${meituUrl}, ${timeoutMs} }) with tag="检测视频与美图平台", img_url="waveform.path.ecg", timeout=90
