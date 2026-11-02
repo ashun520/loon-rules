@@ -15,4 +15,4 @@ meituUrl = input,"https://www.meitu.com/",tag=美图官网检测地址,desc=默�
 timeoutMs = select,5000,8000,10000,type=number,tag=单次超时毫秒
 
 [Script]
-generic then script("https://raw.githubusercontent.com/ashun520/loon-rules/main/VIPLab/VIPLab.js", { ${iqiyiUrl}, ${tencentUrl}, ${youkuUrl}, ${meituUrl}, ${timeoutMs} }) with tag="检测视频与美图平台", img_url="waveform.path.ecg", timeout=90
+cron "0 */6 * * *" then script("https://raw.githubusercontent.com/ashun520/loon-rules/main/VIPLab/VIPLab.js", { ${iqiyiUrl}, ${tencentUrl}, ${youkuUrl}, ${meituUrl}, ${timeoutMs} }) with tag="VIP Lab 自动检测（每 6 小时）", timeout=90
