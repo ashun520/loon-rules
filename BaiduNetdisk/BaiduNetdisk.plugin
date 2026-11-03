@@ -1,0 +1,42 @@
+#!name = 百度网盘强效去广告
+#!desc = 拦截已知开屏广告、广告竞价/统计、首页活动推广与网盘广告位接口；保留文件列表、上传下载、预览及正常视频播放接口。需开启 MITM 并信任 Loon 证书
+#!author = ashun520
+#!homepage = https://github.com/ashun520/loon-rules
+#!icon = https://raw.githubusercontent.com/Thelongdarkorg/loon-plugins/main/icons/baidunetdisk.jpg
+#!loon_version = 3.5.1
+#!tag = 去广告,百度网盘
+#!system = iOS,iPadOS
+
+[Rule]
+# MITM 需要解密 pan.baidu.com；仅阻断该主机的 QUIC，促使请求回落到可解密的 TCP/TLS
+AND,((DOMAIN,pan.baidu.com),(PROTOCOL,QUIC)),REJECT
+
+# 微鲤/百青藤开屏广告素材 CDN（来自公开百度网盘开屏插件）
+AND,((DOMAIN-SUFFIX,vlion.cn),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
+
+[Rewrite]
+# ===== 开屏广告：开关、素材下发、竞价及统计 =====
+^https://pan\.baidu\.com/buy/ad/conf reject-dict
+^https://pan\.baidu\.com/buy/ad/get reject-dict
+^https://pan\.baidu\.com/buy/ad/analytics reject-dict
+^https://pan\.baidu\.com/rest/2\.0/membership/advertise/dsp reject-dict
+^https://pan\.baidu\.com/rest/\d+\.\d+/pcs/adv reject-dict
+^https://pan\.baidu\.com/api/analytics\?.*(?:splash|bidding|iOS_key_splash|iOS_bidding) reject-dict
+
+# ===== 首页/活动/福利推广位 =====
+# 百度网盘活动入口与频道/福利列表广告接口
+^https://pan\.baidu\.com/act/api/activityentry reject
+^https://pan\.baidu\.com/act/v\d+/(?:bchannel|welfare)/list reject-dict
+
+# ===== 网盘广告位接口 =====
+# 精确匹配 pcs 广告接口，不拦截整个 /rest/ 业务目录
+^https://pan\.baidu\.com/rest/2\.0/pcs/ad(?:\?|$) reject-dict
+^https://pan\.baidu\.com/rest/\d+\.\d+/pcs/adx(?:\?|$) reject-dict
+
+# ===== 开屏广告素材 CDN 兜底 =====
+^https://[^/]+\.vlion\.cn/.+ reject-200
+^https://[^/]+\.advlion\.com/.+ reject-200
+
+[MITM]
+hostname = pan.baidu.com, *.vlion.cn, *.advlion.com
