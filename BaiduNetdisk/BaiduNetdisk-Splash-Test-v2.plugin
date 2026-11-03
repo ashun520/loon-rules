@@ -1,0 +1,36 @@
+#!name=百度网盘
+#!desc=百度网盘开屏广告测试版：拦截开屏配置、获取、竞价及广告素材请求；不改会员、不拦正常文件与视频业务；需开启 MITM 并信任证书
+#!author=ashun520
+#!icon=https://raw.githubusercontent.com/Thelongdarkorg/loon-plugins/main/icons/baidunetdisk.jpg
+#!tag=去广告,开屏测试
+#!system=iOS,iPadOS
+
+[Rule]
+# MITM 无法解密 QUIC；对本插件需要解密的主机阻断 QUIC，使请求回落 TCP/HTTPS。
+AND,((DOMAIN,pan.baidu.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,vlion.cn),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
+
+[Rewrite]
+# ===== 百度网盘开屏广告接口 =====
+# 开屏广告配置
+^https://pan\.baidu\.com/buy/ad/conf reject-dict
+# 开屏广告获取
+^https://pan\.baidu\.com/buy/ad/get reject-dict
+# 开屏广告曝光/分析上报
+^https://pan\.baidu\.com/buy/ad/analytics reject-dict
+# 开屏竞价接口
+^https://pan\.baidu\.com/rest/2\.0/membership/advertise/dsp reject-dict
+# 通用广告素材/广告列表接口（仅限定 pcs/adv 路径）
+^https://pan\.baidu\.com/rest/\d+\.\d+/pcs/adv reject-dict
+# 开屏相关 analytics（按 splash / bidding 参数限定，避免拦截普通统计）
+^https://pan\.baidu\.com/api/analytics\?.*(?:splash|bidding|iOS_key_splash|iOS_bidding) reject-dict
+
+# ===== 已知开屏广告素材 CDN =====
+# 微鲤广告素材域
+^https://[^/]+\.vlion\.cn/.+ reject-200
+# 百青藤广告素材域（仅广告专用子域家族）
+^https://[^/]+\.advlion\.com/.+ reject-200
+
+[MITM]
+hostname = pan.baidu.com, *.vlion.cn, *.advlion.com
