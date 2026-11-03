@@ -39,4 +39,4 @@ AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
 ^https://[^/]+\.advlion\.com/.+ reject-200
 
 [MITM]
-hostname = pan.baidu.com, *.vlion.cn, *.advlion.com
+hostname = pan.baidu.com, afd.baidu.com, *.vlion.cn, *.advlion.com
