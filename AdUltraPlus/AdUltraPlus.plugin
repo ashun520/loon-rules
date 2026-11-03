@@ -68,3 +68,12 @@
 ^https?:\/\/saad\.ms\.zhangyue\.net\/ad reject-200
 ^https?:\/\/s\.jiediankeji\.com\/adv reject-dict
 ^https?:\/\/ad\.myfriday\.cn\/d\/json\/1\.1 reject
+
+[Script]
+# DDXQ (叮咚买菜)：本地独立脚本，GPL-3.0-or-later
+http-response ^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/tool\\/getConfig requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/AdUltraPlus/Scripts/ddxq.js
+http-response ^https?:\\/\\/maicai\\.api\\.ddxq\\.mobi\\/homeApi\\/(bottomNavi|homeFlowDetail) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/AdUltraPlus/Scripts/ddxq.js
+http-response ^https?:\\/\\/user\\.api\\.ddxq\\.mobi\\/userportal-service\\/api\\/v\\d\\/user\\/queryMyPage requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/AdUltraPlus/Scripts/ddxq.js
+
+# 起点读书：本地独立脚本，MIT
+http-response ^https?:\\/\\/magev6\\.if\\.qidian\\.com\\/argus\\/api\\/(v4\\/client\\/getsplashscreen|v2\\/(deeplink\\/geturl|dailyrecommend\\/getdailyrecommend)|v1\\/(client\\/getconf$|bookshelf\\/getHoverAdv|adv\\/getadvlistbatch\\?positions=iOS_tab)) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/AdUltraPlus/Scripts/qidian.js
