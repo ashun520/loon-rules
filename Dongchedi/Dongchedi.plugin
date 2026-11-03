@@ -2,7 +2,7 @@
 #!desc = 拦截已验证的懂车帝开屏广告视频素材域及第三方广告曝光/点击监测；不拦截内容视频域，不需要 MITM
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
-#!icon = https://www.17golang.com/uploads/20251020/176093472868f5bb48d0404.png
+#!icon = https://raw.githubusercontent.com/Thelongdarkorg/loon-plugins/main/icons/dongchedi.jpg
 #!loon_version = 3.5.1
 #!tag = 去广告,懂车帝
 #!system = iOS,iPadOS
