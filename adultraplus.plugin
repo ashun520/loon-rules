@@ -1,10 +1,9 @@
 #!loon_version=3.5.1(978)
-#!name=AdUltraPlus · 清爽去广告
-#!desc=应用启动页与信息流广告净化规则（本地脚本）
+#!name=去广告加强版
+#!desc=应用启动页与信息流广告净化规则
 #!icon=https://raw.githubusercontent.com/ashun520/loon-rules/main/adultraplus-icon.svg
-#!homepage=https://yfamilys.com
-#!author=Mixed
-# 由yfamilys.com自动维护 202611
+#!homepage=https://github.com/ashun520/loon-rules
+#!author=ashun
 [URL Rewrite]
 https?:\/\/res\.xiaojukeji\.com\/resapi\/activity\/get(Ruled|Preload|PasMultiNotices) reject-200
 https?:\/\/m\.sd\.10086\.cn\/zapi\/app_common\/homeWelcome\/welcome.do reject-200
