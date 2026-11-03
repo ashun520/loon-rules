@@ -1,5 +1,5 @@
 #!name=百度网盘
-#!desc=百度网盘开屏广告测试版：拦截开屏配置、获取、竞价及广告素材请求；不改会员、不拦正常文件与视频业务；需开启 MITM 并信任证书
+#!desc=百度网盘开屏广告测试版：基于 iOS 13.36.0 HAR 增补百度广告配置与竞价拦截；不改会员、不拦正常文件与视频业务；需开启 MITM 并信任证书
 #!author=ashun520
 #!icon=https://raw.githubusercontent.com/Thelongdarkorg/loon-plugins/main/icons/baidunetdisk.jpg
 #!tag=去广告,开屏测试
@@ -10,6 +10,8 @@
 AND,((DOMAIN,pan.baidu.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,vlion.cn),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
+# HAR 实际捕获到的微鲤广告竞价主机，仅命中该广告交换主机
+DOMAIN,bid-adx2.vlion.cn,REJECT
 
 [Rewrite]
 # ===== 百度网盘开屏广告接口 =====
@@ -26,6 +28,9 @@ AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
 # 开屏相关 analytics（按 splash / bidding 参数限定，避免拦截普通统计）
 ^https://pan\.baidu\.com/api/analytics\?.*(?:splash|bidding|iOS_key_splash|iOS_bidding) reject-dict
 
+# HAR 实际捕获到的百度广告平台配置下发接口；仅拦截 /afd/platform，不拦 afdconf.baidu.com 其他路径
+^https://afdconf\\.baidu\\.com/afd/platform\\?? reject-dict
+
 # ===== 已知开屏广告素材 CDN =====
 # 微鲤广告素材域
 ^https://[^/]+\.vlion\.cn/.+ reject-200
@@ -33,4 +38,4 @@ AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
 ^https://[^/]+\.advlion\.com/.+ reject-200
 
 [MITM]
-hostname = pan.baidu.com, *.vlion.cn, *.advlion.com
+hostname = pan.baidu.com, afdconf.baidu.com, *.vlion.cn, *.advlion.com
