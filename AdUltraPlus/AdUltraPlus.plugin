@@ -1,0 +1,70 @@
+#!name=AdUltraPlus 独立版
+#!desc=多 APP 广告净化规则（独立维护·安全子集，持续扩展中）
+#!icon=https://raw.githubusercontent.com/deezertidal/private/main/icons/startingad.png
+#!homepage=https://github.com/ashun520/loon-rules/tree/main/AdUltraPlus
+#!author=ashun520
+#!date=2026-11-03
+
+# 独立重写版：不调用原作者脚本、Worker、API 或远程配置。
+# 当前为第一阶段安全子集；规则来自公开原插件中可明确识别的广告专用接口。
+# 未经真实设备抓包验证；请按需启用，遇到业务异常可关闭插件反馈。
+# 不包含混合业务接口、统计接口、登录/会员/推荐主接口等高误伤规则。
+
+[URL Rewrite]
+# 启动页 / 开屏广告专用接口
+^https?:\/\/zone\.guiderank-app\.com\/guiderank-web\/app\/ad\/listLaunchADByCity\.do reject-200
+^https?:\/\/homefront\.qunar\.com\/front\/splash\/ad reject-200
+^https?:\/\/support\.you\.163\.com\/xhr\/boot\/getBootMedia\.json reject-200
+^https?:\/\/zt-app\.go189\.cn\/zt-app\/welcome\/.*?Animation reject-img
+^https?:\/\/v3\.wufazhuce\.com:8000\/api\/adpreloadlist reject-dict
+^https?:\/\/www\.hpoi\.net\.cn\/api\/item\/startPage reject-200
+^https?:\/\/www\.gcores\.com\/gapi\/v1\/app-start-pages\?page reject-dict
+^https?:\/\/www\.oschina\.net\/action\/apiv2\/get_launcher reject-img
+^https?:\/\/www\.kujiale\.com\/app\/queryOpenPage reject-200
+^https?:\/\/sso\.ifanr\.com\/jiong\/IOS\/appso\/splash\/ reject-200
+^https?:\/\/service\.busi\.inke\.cn\/api\/flash\/screen reject-200
+^https?:\/\/shopic\.sf-express\.com\/crm\/mobile\/common\/flashscreen reject-200
+^https?:\/\/wap\.spdb\.com\.cn\/mspmk-web-homeassist\/OpenScreenAdv\.ah$ reject
+^https?:\/\/wcprd\.hilton\.com\.cn\/app-middleware\/graphql\?type=splashAd reject-200
+^https?:\/\/thor\.weidian\.com\/ares\/home\.splash reject-200
+^https?:\/\/vapp\.tmuyun\.com\/api\/app_start_page\/list\/new reject-dict
+^https?:\/\/ytmsout\.radio\.cn\/publish\/recScreen\/getLoadPage reject-200
+^https?:\/\/siteapi\.zaixs\.com\/.*\/start_ad reject-200
+^https?:\/\/snailsleep\.net\/snail\/v\d\/screen\/qn\/get\? reject
+
+# 明确广告服务 / 广告列表 / 广告配置接口
+^https?:\/\/awg\.enmonster\.com\/apa\/(advert\/demand\/home\/poster|index\/advert\/skin) reject-dict
+^https?:\/\/top-widgets-api\.xiaozujian\.com\/api\/ad\/config reject
+^https?:\/\/tg\.feidee\.com\/vis-ad-engine-ws\/api\/show reject
+^https?:\/\/tg\.feidee\.com\/online_ad\/api\/search\.do reject
+^https?:\/\/mapi\.appvipshop\.com\/vips-mobile\/rest\/activity\/advertisement\/get reject-200
+^https?:\/\/dynamicad\.kfc\.com\.cn\/api\/app5\/homepage\/ai\/popup reject-200
+^https?:\/\/ccsp-egmas\.sf-express\.com\/cx-app-base\/base\/app\/ad\/queryAdImages reject-200
+^https?:\/\/www\.biguotk\.com\/api\/advertising reject
+^https?:\/\/www\.banyuetanapp\.com\/byt-api\/ad\/getAdvertList\?adSpaceId=100000002 reject-200
+^https?:\/\/www\.iyingdi\.cn\/ad reject-200
+^https?:\/\/www\.icourse163\.org\/mob\/j\/v1\/mobRecommendRPCBean\.getMaxWeightAdvertisement\.rpc reject-200
+^https?:\/\/www\.didapinche\.com\/app\/adstat\/ reject-200
+^https?:\/\/www\.ctm\.net\/crm_api\/.*advertise reject-200
+^https?:\/\/www\.cntv\.cn\/nettv\/adp\/ reject-200
+^https?:\/\/www\.chelaile\.net\.cn\/api\/adpub\/ad reject
+^https?:\/\/webboot\.zhangyue\.com\/zycl\/api\/ad\/ reject
+^https?:\/\/www\.pansearch\.me\/api\/adsite reject-dict
+^https?:\/\/www\.xiaohongshu\.com\/api\/sns\/v\d+\/ads\/resource reject-dict
+^https?:\/\/www\.xiaohongshu\.com\/api\/marketing\/box\/trigger\? reject-dict
+^https?:\/\/ssp\.soulapp\.cn\/api\/ad\/config reject-dict
+^https?:\/\/tiebac\.baidu\.com\/c\/f\/ad\/getFeedAd reject-200
+^https?:\/\/tk\.lanjiyin\.com\.cn\/ad\/getAdList reject-200
+^https?:\/\/sh-gateway\.shihuo\.cn\/v\d\/services\/sh-adapi\/home\/(screen|ad) reject
+^https?:\/\/sfo\.mddcloud\.com\.cn\/api\/v\d\/sfo\/popup_displays? reject-dict
+^https?:\/\/sdk\.tianmu\.mobi\/ad reject-200
+^https?:\/\/sdk\.1rtb\.net\/sdk\/req_ad reject-200
+^https?:\/\/zlsdk\.1rtb\.net\/sdk\/req_ad reject-dict
+^https?:\/\/z\.onewo\.com\/passer\/api\/ads\/v1\/8\/list reject-200
+^https?:\/\/yyfapi\.huatu\.com\/common\/ad\/ reject-200
+^https?:\/\/td\.cgmcare\.cn\/api\/ad reject-200
+^https?:\/\/us\.l\.qq\.com\/exapp reject-200
+^https?:\/\/t-dsp\.pinduoduo\.com reject-200
+^https?:\/\/saad\.ms\.zhangyue\.net\/ad reject-200
+^https?:\/\/s\.jiediankeji\.com\/adv reject-dict
+^https?:\/\/ad\.myfriday\.cn\/d\/json\/1\.1 reject
