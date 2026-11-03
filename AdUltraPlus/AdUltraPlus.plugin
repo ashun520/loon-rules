@@ -233,3 +233,6 @@ http-response ^https?:\/\/api\.zhihu\.com\/commercial_api.*launch_v2 requires-bo
 ^https?:\/\/mmg\.aty\.sohu\.com\/pvlog reject-img
 ^https?:\/\/mmg\.aty\.sohu\.com\/mqs reject-img
 ^https?:\/\/mmgr\.gtimg\.com\/gjsmall\/qqpim\/public\/ios\/splash\/ reject-img
+
+[MITM]
+hostname = api.zhihu.com, maicai.api.ddxq.mobi, user.api.ddxq.mobi, magev6.if.qidian.com
