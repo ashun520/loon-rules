@@ -13,8 +13,9 @@
 DOMAIN,ad-track.fliggy.com,REJECT
 
 [Rewrite]
-# CRM 开屏资源下发：公开规则中 allresource 使用 reject；predict 保留 reject-dict 以避免过度阻断
-^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(allresource|predict)(\/|\?) reject-dict
+# CRM 开屏资源下发：allresource 采用公开规则中的 reject；predict 使用 reject-dict
+^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.allresource(\/|\?) reject
+^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.predict(\/|\?) reject-dict
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.popresource(\/|\?) reject-dict
 
 # 飞猪活动营销资源（仅匹配特定接口，不拦截整个活动/交易网关）
@@ -29,9 +30,8 @@ hostname = acs.m.taobao.com, gw.alicdn.com
 
 # 规则依据：
 # 1) fmz200/wool_scripts 的 Loon 飞猪规则：CRM screen.allresource/predict、活动 TMS 资源、特定 CDN 素材路径。
-^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.allresource(\/|\?) reject
-^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.predict(\/|\?) reject-dict
+# 2) blackmatrix7/ios_rule_script 的广告规则：明确将 mtop.fliggy.crm.screen.allresource 作为广告接口 reject。
 # 3) Lodepuly 淘宝开屏规则同样将 Fliggy CRM screen.allresource/predict 使用 reject-dict。
 # 4) zirawell/R-Store 的飞猪规则：ad-track.fliggy.com、CRM popresource 等端点。
 # 未加入首页结构重建、猜你喜欢、AI 助手、通用淘宝广告域或整段 alicdn CDN 拦截，避免误伤旅行内容与交易功能。
-# 当前未取得本机 HAR，以上规则属于公开规则依据的保守初版，仍需以实际版本表现验证，不能保证覆盖全部广告。
+# 当前未取得本机 HAR，以上规则属于公开规则依据的保守版本，仍需以实际版本表现验证，不能保证覆盖全部广告。
