@@ -10,6 +10,9 @@
 AND,((DOMAIN,pan.baidu.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,vlion.cn),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
+# HAR 的广告上报载荷中明确出现的腾讯广告素材 CDN 主机；按精确主机拦截，尚未在本次 HAR 中看到对应素材下载请求
+DOMAIN,pgdt.ugdtimg.com,REJECT
+DOMAIN,adsmind.ugdtimg.com,REJECT
 # HAR 实际捕获到的微鲤广告竞价主机，仅命中该广告交换主机
 DOMAIN,bid-adx2.vlion.cn,REJECT
 
