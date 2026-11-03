@@ -62,3 +62,18 @@
 | ddgksf2013 12306 | 966 字符 | 未命中上述高风险关键字 |
 
 说明：以上仅是关键词级静态初筛，无法证明脚本不存在隐藏行为；未命中也不等于安全认证。Soul、小红书等通用 Env 封装中出现的网络和持久化接口需要结合真实调用链进一步判断。
+
+## 上游许可证核实（2026-11-03）
+
+已读取三个上游仓库根目录许可证文件：
+
+- `fmz200/wool_scripts`：根目录 `LICENSE` 为 GNU GPL v3。若直接复制/修改其中受该许可证覆盖的脚本并公开分发，需要遵守 GPLv3 的对应义务（包括保留版权和许可证声明、提供对应源代码等）；不能把这类代码当成可随意闭源/换作者发布的素材。
+- `zirawell/R-Store`：根目录 `LICENSE` 为 GNU GPL v3。相同地，若直接复制或修改其受许可覆盖的脚本，发布时需履行 GPLv3 义务。
+- `app2smile/rules`：根目录 `LICENSE.md` 为 MIT License。复制、修改、分发受其覆盖的代码时，应保留版权与许可声明。
+
+许可证存在于仓库根目录并不自动证明仓库内每一个第三方文件、外链资源或贡献文件都由仓库作者以该许可证授权；实际采用前仍需核对具体文件版权头、来源和贡献者声明。对于功能等价重写，仍需避免复制原代码表达或大段注释。
+
+许可证原文：
+- https://raw.githubusercontent.com/fmz200/wool_scripts/main/LICENSE
+- https://raw.githubusercontent.com/zirawell/R-Store/main/LICENSE
+- https://raw.githubusercontent.com/app2smile/rules/master/LICENSE.md
