@@ -1,5 +1,5 @@
 #!name = 飞猪去广告
-#!desc = 飞猪 iOS 去广告：拦截已知广告追踪与营销资源接口，过滤广告资源请求；保留机票、酒店、火车票、订单、支付、登录及核心搜索服务。需开启 MITM 并信任 Loon 证书。
+#!desc = 飞猪 iOS 开屏广告专项：针对公开规则确认的 CRM 开屏资源接口进行拦截，保留机票、酒店、火车票、订单、支付、登录及核心搜索服务。需开启 MITM 并信任 Loon 证书。
 #!author = ashun520（参考公开 Loon / Surge 飞猪规则并保守筛选）
 #!homepage = https://github.com/ashun520/loon-rules
 #!icon = https://raw.githubusercontent.com/zirawell/R-Store/main/Res/Icon/App/fliggy.png
@@ -13,7 +13,7 @@
 DOMAIN,ad-track.fliggy.com,REJECT
 
 [Rewrite]
-# CRM 弹窗与开屏/屏幕资源配置：广告资源接口，返回空 JSON
+# CRM 开屏资源下发：公开规则中 allresource 使用 reject；predict 保留 reject-dict 以避免过度阻断
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.(allresource|predict)(\/|\?) reject-dict
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.popresource(\/|\?) reject-dict
 
@@ -29,6 +29,8 @@ hostname = acs.m.taobao.com, gw.alicdn.com
 
 # 规则依据：
 # 1) fmz200/wool_scripts 的 Loon 飞猪规则：CRM screen.allresource/predict、活动 TMS 资源、特定 CDN 素材路径。
-# 2) zirawell/R-Store 的飞猪规则：ad-track.fliggy.com、CRM popresource 等端点。
+# 2) blackmatrix7/ios_rule_script 的广告规则：明确将 mtop.fliggy.crm.screen.allresource 作为广告接口 reject。
+# 3) Lodepuly 淘宝开屏规则同样将 Fliggy CRM screen.allresource/predict 使用 reject-dict。
+# 4) zirawell/R-Store 的飞猪规则：ad-track.fliggy.com、CRM popresource 等端点。
 # 未加入首页结构重建、猜你喜欢、AI 助手、通用淘宝广告域或整段 alicdn CDN 拦截，避免误伤旅行内容与交易功能。
 # 当前未取得本机 HAR，以上规则属于公开规则依据的保守初版，仍需以实际版本表现验证，不能保证覆盖全部广告。
