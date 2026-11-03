@@ -42,3 +42,23 @@
 - 滴滴脚本：`https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js`
 - 彩云脚本：`https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/caiyun_json.js`
 - Bing 脚本：`https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/bing.js`
+
+
+## 第三轮样本初筛补充（2026-11-03）
+
+新增检查了以下脚本源文件：
+
+| 脚本 | 大小 | 静态初筛结果 |
+|---|---:|---|
+| fmz200 菜鸟 | 4,449 字符 | 未命中显式网络请求、持久化、动态执行关键字 |
+| fmz200 Soul | 14,875 字符 | 命中通用 Env HTTP 客户端封装、持久化接口等关键字；当前命中集中在 Env 兼容层，尚未证明业务逻辑调用这些能力，需进一步追踪调用点 |
+| fmz200 酷我 | 4,632 字符 | 未命中显式网络请求、持久化、动态执行关键字 |
+| fmz200 酷安 | 2,393 字符 | 未命中显式网络请求、持久化、动态执行关键字 |
+| zirawell 建行生活 | 2,885 字符 | 未命中显式网络请求、持久化、动态执行关键字 |
+| zirawell 盒马 | 1,976 字符 | 未命中显式网络请求、持久化、动态执行关键字 |
+| app2smile 起点 | 5,281 字符 | 未命中显式网络请求、持久化、动态执行关键字 |
+| app2smile VGTime | 274 字符 | 极短响应处理脚本，未命中上述高风险关键字 |
+| ddgksf2013 知乎开屏 | 809 字符 | 未命中上述高风险关键字 |
+| ddgksf2013 12306 | 966 字符 | 未命中上述高风险关键字 |
+
+说明：以上仅是关键词级静态初筛，无法证明脚本不存在隐藏行为；未命中也不等于安全认证。Soul、小红书等通用 Env 封装中出现的网络和持久化接口需要结合真实调用链进一步判断。
