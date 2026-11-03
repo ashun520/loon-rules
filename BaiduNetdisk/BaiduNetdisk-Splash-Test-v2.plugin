@@ -29,7 +29,7 @@ DOMAIN,bid-adx2.vlion.cn,REJECT
 ^https://pan\.baidu\.com/api/analytics\?.*(?:splash|bidding|iOS_key_splash|iOS_bidding) reject-dict
 
 # HAR 实际捕获到的百度广告平台配置下发接口；仅拦截 /afd/platform，不拦 afdconf.baidu.com 其他路径
-^https://afdconf\\.baidu\\.com/afd/platform\\?? reject-dict
+^https://afdconf\.baidu\.com/afd/platform\?? reject-dict
 
 # ===== 已知开屏广告素材 CDN =====
 # 微鲤广告素材域
