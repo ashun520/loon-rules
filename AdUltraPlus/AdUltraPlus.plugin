@@ -166,4 +166,3 @@ http-response ^https?:\/\/api\.zhihu\.com\/commercial_api.*launch_v2 requires-bo
 ^https?:\/\/ios\.wps\.cn\/ad-statistics-service reject
 ^https?:\/\/iyes\.youku\.com\/uts\/v\d\/start reject-200
 ^https?:\/\/iphone\.ac\.qq\.com\/.*\/Support\/(getSystemConf|bootScreen) reject-200
-^https?:\/\/mystartup\.invalid\/ad reject
