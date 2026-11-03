@@ -114,7 +114,7 @@ if (url.includes("/mtop.taobao.idlehome.home.circle.list")) {
 
 //if (url.indexOf("/mtop.taobao.idlemtopsearch.search") != -1) {
   //obj.data.resultList = obj.data.resultList.filter(item => {  
-    //过滤掉表示为广告的项
+    // 过滤掉表示为广告的项
     //return item.data.item.main.exContent.isAliMaMaAD !== "true";  
   //});
 //}
