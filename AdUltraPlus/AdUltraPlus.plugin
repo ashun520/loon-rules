@@ -95,7 +95,6 @@ http-response ^https?:\/\/api\.zhihu\.com\/commercial_api.*launch_v2 requires-bo
 ^https?:\/\/restapi\.iyunmai\.com\/api\/ios\/ad\/ reject-200
 ^https?:\/\/restapi\.iyunmai\.com\/ad-api\/ reject-200
 ^https?:\/\/p1-lm\.adukwai\.com\/bs2\/adUnionVideo reject
-^https?:\/\/pagead2\.googlesyndication\.com\/pagead\/ reject-img
 ^https?:\/\/qadx\.qinlinad\.com\/ad\/ reject-200
 ^https?:\/\/ptmpcap\.caocaokeji\.cn\/advert-bss\/ reject-img
 ^https?:\/\/patientgate\.91160\.com\/advert-api\/v\d\/advert reject-200
