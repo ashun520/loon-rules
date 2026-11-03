@@ -36,14 +36,14 @@ AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
 
 # ===== 其他明确的推广/广告入口 =====
 # 百度广告联盟广告内容下发；只处理专用广告入口
-^https://afd\\.baidu\\.com/afd/entry(?:\\?|$) reject-dict
+^https://afd\.baidu\.com/afd/entry(?:\?|$) reject-dict
 # 会员引导弹窗，不影响会员状态查询与实际账号信息
-^https://pan\\.baidu\\.com/rest/\\d+\\.\\d+/membership/proxy/guide(?:\\?|$) reject-dict
+^https://pan\.baidu\.com/rest/\d+\.\d+/membership/proxy/guide(?:\?|$) reject-dict
 # 任务中心活动列表与金币中心提示（不拦截签到/积分提交接口）
-^https://pan\\.baidu\\.com/api/taskscore/tasklist(?:\\?|$) reject-dict
-^https://pan\\.baidu\\.com/coins/center/notice(?:\\?|$) reject-dict
+^https://pan\.baidu\.com/api/taskscore/tasklist(?:\?|$) reject-dict
+^https://pan\.baidu\.com/coins/center/notice(?:\?|$) reject-dict
 # 活动推广数据
-^https://pan\\.baidu\\.com/api/useractivity/activity(?:\\?|$) reject-dict
+^https://pan\.baidu\.com/api/useractivity/activity(?:\?|$) reject-dict
 
 # ===== 开屏广告素材 CDN 兜底 =====
 ^https://[^/]+\.vlion\.cn/.+ reject-200
