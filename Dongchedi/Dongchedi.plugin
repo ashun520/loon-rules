@@ -1,0 +1,18 @@
+#!name = 懂车帝强效去广告
+#!desc = 拦截已验证的懂车帝开屏广告视频素材域及第三方广告曝光/点击监测；不拦截内容视频域，不需要 MITM
+#!author = ashun520
+#!homepage = https://github.com/ashun520/loon-rules
+#!loon_version = 3.5.1
+#!tag = 去广告,懂车帝
+#!system = iOS,iPadOS
+
+[Rule]
+# 懂车帝开屏广告视频素材专用域名（与内容视频域分离）
+DOMAIN,v26-dcar-ad.dcarvod.com,REJECT
+# 同一广告素材桶的版本/前缀变化兜底；只匹配带 -ad.dcarvod.com 的主机，不拦截普通内容桶
+DOMAIN-KEYWORD,-ad.dcarvod.com,REJECT
+
+# 第三方广告曝光与点击监测（跨 App 通用监测服务）
+DOMAIN-SUFFIX,miaozhen.com,REJECT
+DOMAIN-SUFFIX,ctrmi.cn,REJECT
+DOMAIN-SUFFIX,gridsumdissector.com,REJECT
