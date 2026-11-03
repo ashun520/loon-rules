@@ -1,7 +1,7 @@
 #!loon_version=3.5.1(978)
-#!name=APP去广告加强版
-#!desc=APP启动页去广告（脚本全部本地化，零远程依赖）
-#!icon=https://raw.githubusercontent.com/deezertidal/private/main/icons/startingad.png
+#!name=AdUltraPlus · 清爽去广告
+#!desc=应用启动页与信息流广告净化规则（本地脚本）
+#!icon=https://raw.githubusercontent.com/ashun520/loon-rules/main/adultraplus-icon.svg
 #!homepage=https://yfamilys.com
 #!author=Mixed
 # 由yfamilys.com自动维护 202611
