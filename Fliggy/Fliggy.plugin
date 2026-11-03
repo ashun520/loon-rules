@@ -29,7 +29,8 @@ hostname = acs.m.taobao.com, gw.alicdn.com
 
 # 规则依据：
 # 1) fmz200/wool_scripts 的 Loon 飞猪规则：CRM screen.allresource/predict、活动 TMS 资源、特定 CDN 素材路径。
-# 2) blackmatrix7/ios_rule_script 的广告规则：明确将 mtop.fliggy.crm.screen.allresource 作为广告接口 reject。
+^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.allresource(\/|\?) reject
+^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.screen\.predict(\/|\?) reject-dict
 # 3) Lodepuly 淘宝开屏规则同样将 Fliggy CRM screen.allresource/predict 使用 reject-dict。
 # 4) zirawell/R-Store 的飞猪规则：ad-track.fliggy.com、CRM popresource 等端点。
 # 未加入首页结构重建、猜你喜欢、AI 助手、通用淘宝广告域或整段 alicdn CDN 拦截，避免误伤旅行内容与交易功能。
