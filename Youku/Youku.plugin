@@ -1,0 +1,86 @@
+#!name = 优酷去广告
+#!desc = 优酷 iOS 去广告：处理开屏/播放广告配置、信息流推广卡、播放页推广组件与弹窗；拦截已知优酷广告投放域名。保留视频播放、登录、会员与推荐业务核心接口；需开启 MITM 并信任 Loon 证书。
+#!author = ashun520（规则参考 FFDNS / Thelongdarkorg 开源优酷规则）
+#!homepage = https://github.com/ashun520/loon-rules
+#!icon = https://raw.githubusercontent.com/Thelongdarkorg/loon-plugins/main/icons/youku.jpg
+#!system = iOS,iPadOS
+#!loon_version = 3.5.1(983)
+#!tag = 去广告,视频,优酷
+#!type = normal
+
+[Rule]
+# ===== 保留直连：这些是配置/播放网关，需由本地 MITM 重写，不做整域拦截 =====
+DOMAIN,push.m.youku.com,DIRECT
+DOMAIN,un-acs.youku.com,DIRECT
+DOMAIN,acs.youku.com,DIRECT
+DOMAIN,dorangesource.alicdn.com,DIRECT
+
+# ===== 优酷广告投放 / 广告素材 / 曝光统计 =====
+DOMAIN,adx-core.youku.com,REJECT
+DOMAIN,adx-open-service.youku.com,REJECT
+DOMAIN,yk-ssp.ad.youku.com,REJECT
+DOMAIN,cad.youku.com,REJECT
+DOMAIN,ykad-data.youku.com,REJECT
+DOMAIN,amdc.m.youku.com,REJECT
+DOMAIN,pre-acs.youku.com,REJECT
+DOMAIN,youku-acs.m.taobao.com,REJECT
+DOMAIN,h-adashx.ut.taobao.com,REJECT
+DOMAIN,youku-crm-product.youku.com,REJECT
+DOMAIN,ad.mobile.youku.com,REJECT
+DOMAIN,ad.api.3g.youku.com,REJECT
+DOMAIN,ad.api.3g.tudou.com,REJECT
+DOMAIN-SUFFIX,ad.youku.com,REJECT
+DOMAIN-SUFFIX,iyes.youku.com,REJECT
+DOMAIN,apiv4-iyes.youku.com,REJECT
+
+# ===== 商业弹幕 / 广告素材校验 =====
+DOMAIN,dr-danmu.youku.com,REJECT
+DOMAIN,group-ssl-danmu-ori.youku.com,REJECT
+DOMAIN,vali-g1.cp31.ott.cibntv.net,REJECT
+DOMAIN,vali-ugc.cp31.ott.cibntv.net,REJECT
+DOMAIN,m-vali.cp31.ott.cibntv.net,REJECT
+DOMAIN,pl.cp31.ott.cibntv.net,REJECT
+
+# ===== 让关键 HTTPS 配置请求走 TCP，确保 MITM 重写可执行 =====
+AND,((DOMAIN,acs.youku.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,un-acs.youku.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,push.m.youku.com),(PROTOCOL,QUIC)),REJECT
+
+# ===== 可选统计/推荐埋点：默认关闭，避免误伤推荐与消息功能 =====
+# DOMAIN,lstat.youku.com,REJECT
+# DOMAIN,urchin.lstat.youku.com,REJECT
+# DOMAIN,ykrec.youku.com,REJECT
+# DOMAIN,s.p.youku.com,REJECT
+# DOMAIN,wan.youku.com,REJECT
+
+[Rewrite]
+# ===== 开屏与播放器广告：仅删除广告字段，其他启动/播放数据原样保留 =====
+^https:\/\/un-acs\.youku\.com\/gw\/mtop\.youku\.play\.ups\.appinfo\.get(\/|\?) response-body-json-jq '. as $o | try (if ((.data.data|type)=="object") then del(.data.data.ad, .data.data.watermark, .data.data.ykad) else . end) catch $o'
+
+# ===== 热剧开播推送弹窗：只移除弹窗文案字段 =====
+^https:\/\/push\.m\.youku\.com\/collect-api\/get_push_interval_config_wx\? response-body-json-jq '. as $o | try (if ((.data|type)=="object") then del(.data.tipContent, .data.tipContentNew) else . end) catch $o'
+
+# ===== 播放详情页推广组件：过滤已知广告/会员营销组件，保留普通内容节点 =====
+^https:\/\/acs\.youku\.com\/gw\/mtop\.youku\.columbus\.gateway\.new\.execute(\/|\?) response-body-json-jq '. as $o | try (if (.data|type)!="object" then . elif (.data["2019030100"].data|type)!="object" then . else (.data["2019030100"].data |= (if (.nodes|type)=="array" then .nodes |= map(if (type!="object") then . elif ((.typeName=="PHONE_CHD_AGE_DETAIL_2") or (.typeName=="PHONE_CHILD_SERIES_A") or (.typeName=="PHONE_CHILD_STAR_A") or (.typeName=="PHONE_DEFALT_SCROLL_C") or (.typeName=="Phone运营banner") or (.typeName=="播放页触达组件") or (.typeName=="播放页广告组件") or (.typeName=="播放页会员引导组件") or (.typeName=="播放页活动组件") or (.typeName=="播放页全屏播后推荐组件") or (.typeName=="播放页推荐组件") or (.typeName=="播放页用户触达组件") or (.typeName=="优酷购")) then empty else . end) else . end)) end) catch $o'
+
+# ===== 首页信息流：只剔除已知广告卡类型 =====
+^https:\/\/acs\.youku\.com\/gw\/mtop\.youku\.columbus\.home\.feed(\/|\?) response-body-json-jq '. as $o | try (if (.data["2019061000"].data.nodes|type)=="array" then (.data["2019061000"].data.nodes |= map(if (type!="object") then . elif ((.typeName=="PHONE_FEED_CARD_GROUP") and ((.nodes|type)=="array")) then .nodes |= map(if (type!="object") then . elif ((.typeName=="PHONE_FEED_CARD_S_AD") or (.typeName=="PHONE_H_UC_AD")) then empty else . end) else . end)) else . end) catch $o'
+
+# ===== 频道列表：过滤明确标记的广告组件，不整段清空推荐数据 =====
+^https:\/\/acs\.youku\.com\/gw\/mtop\.youku\.columbus\.home\.query(\/|\?) response-body-json-jq '. as $o | try (if (.data["2019061000"].data.nodes|type)=="array" then (.data["2019061000"].data.nodes |= map(if (type!="object") then . elif ((.typeName=="UC广告抽屉") or (.typeName=="橱窗广告") or (.typeName=="PHONE_FEED_CARD_B_AD") or (.typeName=="PHONE_FEED_CARD_S_AD") or (.typeName=="PHONE_H_UC_AD") or (.typeName=="PHONE_YK_AD_BANNER")) then empty else . end)) else . end) catch $o'
+
+# ===== 我的页面：删除已知推广入口组件（不动账户/设置数据） =====
+^https:\/\/acs\.youku\.com\/gw\/mtop\.youku\.columbus\.uc\.query(\/|\?) response-body-json-jq '. as $o | try (if (.data["2019061000"].data.nodes|type)=="array" then (.data["2019061000"].data.nodes |= map(if (type!="object") then . elif ((.id==32133) or (.id==32775) or (.id==22570) or (.id==35942) or (.id==36014) or (.id==38466)) then empty else . end)) else . end) catch $o'
+
+# ===== 搜索页：过滤无业务数据的推广节点 =====
+^https:\/\/acs\.youku\.com\/gw\/mtop\.youku\.soku\.yksearch(\/|\?) response-body-json-jq '. as $o | try (if (.data.nodes|type)=="array" then (.data.nodes |= map(if (type=="object" and has("data")) then . else empty end)) else . end) catch $o'
+
+# ===== 播放页弹窗广告素材/位置预加载：返回空对象，保留接口状态 =====
+^https:\/\/acs\.youku\.com\/gw\/mtop\.youku\.(pisp\.scripts\.get|xspace\.play\.position\.preload\.query|xspace\.poplayer\.position\.query)(\/|\?) reject-dict
+
+[MITM]
+hostname = acs.youku.com, un-acs.youku.com, push.m.youku.com
+
+# 规则依据：参考 FFDNS / Thelongdarkorg 的公开优酷规则并作保守化筛选。
+# 未经当前设备抓包验证的端点已按“已知规则线索”处理，不代表保证拦截全部广告。
+# 不拦截 api.sm.cn、百川 SDK、lstat/ykrec 等跨 App 或推荐统计域，降低其他应用与推荐功能误伤。
