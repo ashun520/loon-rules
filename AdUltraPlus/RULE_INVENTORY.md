@@ -47,3 +47,22 @@
 - 完整提取所有脚本 URL，核实各仓库许可证及各脚本许可范围。
 - 审计 Worker、Gist 和剩余脚本。
 - 编写独立替代实现、图标托管、Loon 语法检查与真机验证。
+
+
+## URL Rewrite 风险复核（首段可见规则，非完整清单）
+
+原插件前段存在一些不能简单归类为“纯广告接口”的规则，重建时应列为高风险/需验证，而不是无条件保留：
+
+| 原规则目标 | 原处理 | 风险判断 |
+|---|---|---|
+| `access.mypikpak.com/access_controller/v1/area_accessible` | `reject` | 名称指向区域可访问性/地区权限判断，不是明显广告接口；拦截可能影响 PikPak 登录后的服务可用性或区域判断，建议默认不迁移。 |
+| `www.1314zhilv.com/.../getWeatherByCityName` | `reject-dict` | URL 同时匹配景区更新与天气查询接口；拦截天气接口可能造成天气信息缺失，建议拆分或排除天气路径。 |
+| `zgrb.epicc.com.cn/.../queryHeadlines` | `reject` | 路径名称是头条查询，不能仅凭域名/路径认定广告；可能误伤内容列表。 |
+| `www.onstar.com.cn/.../community/article/page` | `reject-dict` | 路径为社区文章分页，属于内容业务接口风险，不应直接作为广告拦截。 |
+| `ucmp.sf-express.com/.../memberEquity/queryRecommendEquity` | `reject-dict` | 名称指向会员权益推荐，可能混有营销，但也可能承载会员权益展示；需按响应字段精确过滤。 |
+| `ucmp.sf-express.com/.../goodsList` | `reject-dict` | 积分商城商品列表属于业务内容，整包拒绝可能影响积分商城。 |
+| `ucmp.sf-express.com/.../fullGiveInfo` | `reject-dict` | 满赠活动信息，可能是营销模块，但不等同于广告素材；建议按页面功能决定是否拦截。 |
+
+另有多处相同 URL 同时配置 `reject` 与 `reject-200`，例如部分启动页/广告配置接口。这类重复规则需在最终插件中去重并选定一种响应策略，避免重复匹配导致结果不确定。
+
+**重建策略修正：** 不能只看路径中出现 `ad`、`recommend`、`activity`、`config` 就拦截；需要确认接口是否仅承载广告，或在响应体中仅删除广告字段。登录、地区权限、天气、内容列表、会员权益、积分商城等业务接口优先保留。
