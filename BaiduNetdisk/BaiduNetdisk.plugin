@@ -1,5 +1,5 @@
 #!name = 百度网盘强效去广告
-#!desc = 拦截已知开屏广告、广告竞价/统计、首页活动推广与网盘广告位接口；保留文件列表、上传下载、预览及正常视频播放接口。需开启 MITM 并信任 Loon 证书
+#!desc = 内置响应净化脚本：处理已知广告/推广接口及会员引导弹窗；不伪造会员身份、购买记录或网盘容量。需开启 MITM 并信任 Loon 证书
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
 #!icon = https://raw.githubusercontent.com/Thelongdarkorg/loon-plugins/main/icons/baidunetdisk.jpg
@@ -8,46 +8,40 @@
 #!system = iOS,iPadOS
 
 [Rule]
-# MITM 需要解密 pan.baidu.com；仅阻断该主机的 QUIC，促使请求回落到可解密的 TCP/TLS
+# 仅阻断 pan.baidu.com 的 QUIC，促使请求回落到可解密的 TCP/TLS
 AND,((DOMAIN,pan.baidu.com),(PROTOCOL,QUIC)),REJECT
 
-# 微鲤/百青藤开屏广告素材 CDN（来自公开百度网盘开屏插件）
+# 微鲤/百青藤开屏广告素材 CDN
 AND,((DOMAIN-SUFFIX,vlion.cn),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
 
 [Rewrite]
-# ===== 开屏广告：开关、素材下发、竞价及统计 =====
-^https://pan\.baidu\.com/buy/ad/conf reject-dict
-^https://pan\.baidu\.com/buy/ad/get reject-dict
-^https://pan\.baidu\.com/buy/ad/analytics reject-dict
-^https://pan\.baidu\.com/rest/2\.0/membership/advertise/dsp reject-dict
-^https://pan\.baidu\.com/rest/\d+\.\d+/pcs/adv reject-dict
-^https://pan\.baidu\.com/api/analytics\?.*(?:splash|bidding|iOS_key_splash|iOS_bidding) reject-dict
+# 开屏广告竞价/统计接口
+^https://pan\\.baidu\\.com/buy/ad/get reject-dict
+^https://pan\\.baidu\\.com/buy/ad/analytics reject-dict
+^https://pan\\.baidu\\.com/api/analytics\\?.*(?:splash|bidding|iOS_key_splash|iOS_bidding) reject-dict
 
-# ===== 首页/活动/福利推广位 =====
-# 百度网盘活动入口与频道/福利列表广告接口
-^https://pan\.baidu\.com/act/api/activityentry reject
-^https://pan\.baidu\.com/act/v\d+/(?:bchannel|welfare)/list reject-dict
+# 首页/活动/福利广告列表
+^https://pan\\.baidu\\.com/act/v\\d+/welfare/list reject-dict
 
-# ===== 网盘广告位接口 =====
-# 精确匹配 pcs 广告接口，不拦截整个 /rest/ 业务目录
-^https://pan\.baidu\.com/rest/2\.0/pcs/ad(?:\?|$) reject-dict
-^https://pan\.baidu\.com/rest/\d+\.\d+/pcs/adx(?:\?|$) reject-dict
+# 精确匹配网盘广告位接口，不拦截整个业务目录
+^https://pan\\.baidu\\.com/rest/2\\.0/pcs/ad(?:\\?|$) reject-dict
+^https://pan\\.baidu\\.com/rest/\\d+\\.\\d+/pcs/adx(?:\\?|$) reject-dict
 
-# ===== 其他明确的推广/广告入口 =====
-# 百度广告联盟广告内容下发；只处理专用广告入口
-^https://afd\.baidu\.com/afd/entry(?:\?|$) reject-dict
-# 会员引导弹窗，不影响会员状态查询与实际账号信息
-^https://pan\.baidu\.com/rest/\d+\.\d+/membership/proxy/guide(?:\?|$) reject-dict
-# 任务中心活动列表与金币中心提示（不拦截签到/积分提交接口）
-^https://pan\.baidu\.com/api/taskscore/tasklist(?:\?|$) reject-dict
-^https://pan\.baidu\.com/coins/center/notice(?:\?|$) reject-dict
-# 活动推广数据
-^https://pan\.baidu\.com/api/useractivity/activity(?:\?|$) reject-dict
+# 百度广告联盟专用广告入口
+^https://afd\\.baidu\\.com/afd/entry(?:\\?|$) reject-dict
 
-# ===== 开屏广告素材 CDN 兜底 =====
-^https://[^/]+\.vlion\.cn/.+ reject-200
-^https://[^/]+\.advlion\.com/.+ reject-200
+# 任务/金币/活动推广数据（保留签到与积分提交接口）
+^https://pan\\.baidu\\.com/api/taskscore/tasklist(?:\\?|$) reject-dict
+^https://pan\\.baidu\\.com/coins/center/notice(?:\\?|$) reject-dict
+^https://pan\\.baidu\\.com/api/useractivity/activity(?:\\?|$) reject-dict
+
+# 开屏广告素材 CDN 兜底
+^https://[^/]+\\.vlion\\.cn/.+ reject-200
+^https://[^/]+\\.advlion\\.com/.+ reject-200
+
+[Script]
+response if ${url} ~= /^https?:\\/\\/pan\\.baidu\\.com\\// then script("baidu_response.js") with requires_body=true, tag="百度网盘广告响应净化"
 
 [MITM]
 hostname = pan.baidu.com, afd.baidu.com, *.vlion.cn, *.advlion.com
