@@ -1,5 +1,5 @@
 #!name = 百度网盘强效去广告
-#!desc = 修正规则正则转义；清理已知广告接口与素材请求，不伪造会员身份或付费权益。需开启 MITM 并信任 Loon 证书
+#!desc = 广告净化 + 本地响应级虚假 SVIP 展示伪装（实验性，不会开通真实会员权益）。需开启 MITM 并信任 Loon 证书
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
 #!icon = https://raw.githubusercontent.com/Thelongdarkorg/loon-plugins/main/icons/baidunetdisk.jpg
@@ -27,7 +27,7 @@ AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
 ^https:\/\/[^/]+\.advlion\.com\/.+ reject-200
 
 [Script]
-response if ${url} ~= /^https?:\/\/pan\.baidu\.com\/(?:act\/.+\/(?:activityentry|bchannel|cardwelfare)|feed\/cardinfos|buy\/ad\/conf|rest\/.+\/(?:pcs\/adv|membership\/proxy\/guide))/ then script("baidu_response.js") with requires_body=true, tag="百度网盘广告响应净化"
+response if ${url} ~= /^https?:\/\/pan\.baidu\.com\/(?:act\/.+\/(?:activityentry|bchannel|cardwelfare)|feed\/cardinfos|buy\/ad\/conf|rest\/.+\/(?:pcs\/adv|membership\/proxy\/guide)|api\/(?:quota|loginstatus)|membership\/user|user\/getinfo|wap\/vip)/ then script("baidu_response.js") with requires_body=true, tag="百度网盘广告净化与SVIP展示伪装"
 
 [MITM]
 hostname = pan.baidu.com, afd.baidu.com, *.vlion.cn, *.advlion.com
