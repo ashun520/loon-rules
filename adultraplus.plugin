@@ -1,7 +1,7 @@
 #!loon_version=3.5.1(978)
 #!name=去广告加强版
 #!desc=应用启动页与信息流广告净化规则
-#!icon=https://raw.githubusercontent.com/ashun520/loon-rules/main/adultraplus-icon.svg
+#!icon=https://i.postimg.cc/CMqnTr7J/IMG-7177.jpg
 #!homepage=https://github.com/ashun520/loon-rules
 #!author=ashun
 [URL Rewrite]
