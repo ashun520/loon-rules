@@ -47,7 +47,7 @@
 ^https?:\/\/www\.didapinche\.com\/app\/adstat\/ reject-200
 ^https?:\/\/www\.ctm\.net\/crm_api\/.*advertise reject-200
 ^https?:\/\/www\.cntv\.cn\/nettv\/adp\/ reject-200
-^https?:\/\/www\.chelaile\.net\.cn\/api\/adpub\/ad reject
+^https?:\\/\\/web\\.chelaile\\.net\\.cn\\/api\\/adpub\\/ad reject
 ^https?:\/\/webboot\.zhangyue\.com\/zycl\/api\/ad\/ reject
 ^https?:\/\/www\.pansearch\.me\/api\/adsite reject-dict
 ^https?:\/\/www\.xiaohongshu\.com\/api\/sns\/v\d+\/ads\/resource reject-dict
