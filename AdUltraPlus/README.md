@@ -16,7 +16,7 @@
 - 原始插件入口已读取：`https://yfamilys.com/plugin/adultraplus.plugin`
 - 原始文件共 2758 行，属于综合规则集，含 URL Rewrite、响应体脚本等多种规则。
 - 远程脚本不是单一来源；已发现 ddgksf2013/Scripts、fmz200/wool_scripts、zirawell/R-Store、app2smile/rules、blackmatrix7 Gist，以及一个 Cloudflare Workers 地址。
-- 已提交第一阶段可安装插件 `AdUltraPlus.plugin`：包含 54 条 URL Rewrite 规则，以及叮咚买菜、起点读书、知乎三个本地响应体脚本模块（5 条 Script 触发规则）；仍是阶段版本，不等同于原插件完整 2758 行功能。
+- 已提交第一阶段可安装插件 `AdUltraPlus.plugin`：包含扩展后的 URL Rewrite 规则集，以及叮咚买菜、起点读书、知乎三个本地响应体脚本模块（5 条 Script 触发规则）；仍是阶段版本，不等同于原插件完整 2758 行功能；批量导入时按规则行去重，并排除了已识别的混合业务/会员权益接口。
 - 当前规则已写入本仓库，不引用原作者脚本、Worker、API 或远程配置；图标沿用原插件公开使用的启动页广告图标，并已验证图像地址可访问。
 - 叮咚买菜脚本保留 GPL-3.0-or-later 来源声明；起点读书脚本保留 MIT 来源声明；知乎开屏脚本为独立实现，不复制原作者代码。三个脚本均已放入本仓库，插件触发规则已改为本仓库 Raw 地址。
 - 规则与脚本尚未在真实 Loon 设备及目标 APP 上逐项实测；阶段版本需视为测试版。
