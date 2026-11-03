@@ -41,7 +41,7 @@ AND,((DOMAIN-SUFFIX,advlion.com),(PROTOCOL,QUIC)),REJECT
 ^https://[^/]+\\.advlion\\.com/.+ reject-200
 
 [Script]
-response if ${url} ~= /^https?:\\/\\/pan\\.baidu\\.com\\// then script("baidu_response.js") with requires_body=true, tag="百度网盘广告响应净化"
+response if ${url} ~= /^https?:\\/\\/pan\\.baidu\\.com\\/(?:act\\/.+\\/(?:activityentry|bchannel|cardwelfare)|feed\\/cardinfos|buy\\/ad\\/conf|rest\\/.+\\/(?:pcs\\/adv|membership\\/proxy\\/guide))/ then script("baidu_response.js") with requires_body=true, tag="百度网盘广告响应净化"
 
 [MITM]
 hostname = pan.baidu.com, afd.baidu.com, *.vlion.cn, *.advlion.com
