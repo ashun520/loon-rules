@@ -1,38 +1,44 @@
-# AdUltraPlus 远程脚本初步审计记录
+# AdUltraPlus 远程脚本审计补充（2026-11-03）
 
-审计对象：原始插件 `https://yfamilys.com/plugin/adultraplus.plugin` 中已定位的脚本引用。  
-审计性质：静态初筛；不是完整安全认证，也没有在 Loon 运行时执行。
+本轮重新从原始插件入口提取了脚本引用（集中在原文件约第 2255–2692 行），并补查了若干脚本源文件。以下是新增的可复核发现。
 
-## 已确认的脚本依赖样本
+## 已定位的远程脚本类别
 
-| 来源 | 脚本 | 用途线索 | 初筛观察 |
-|---|---|---|---|
-| ddgksf2013/Scripts | weibo_json.js | 微博响应 JSON 调整 | 含按函数名分派的 `eval(method)`；当前看到的脚本样本中未发现显式 fetch、HTTP 客户端或 WebSocket 调用。需继续审计函数映射和完整数据流 |
-| fmz200/wool_scripts | cnftp.js | 爱奇艺、芒果 TV、优酷等响应处理 | 解析响应 JSON 并按请求 URL 分支修改；样本未发现显式网络请求或动态执行 |
-| ddgksf2013/Scripts | amap.js | 高德地图响应处理 | 脚本高度混淆（出现 jsjiami 标记）；不能仅凭未命中网络 API 断定安全，需解混淆或逐段审查 |
-| fmz200/wool_scripts | Smzdm.js | 什么值得买响应处理 | 样本主要递归过滤 JSON 内容；未发现显式网络请求或动态执行 |
-| zirawell/R-Store | ddxq.js | 叮咚买菜响应处理 | 样本按接口 URL 修改 JSON；未发现显式网络请求或动态执行 |
-| app2smile/rules | tieba-json.js | 百度贴吧响应处理 | 样本按请求路径调整响应 JSON；未发现显式网络请求或动态执行 |
+原插件引用的脚本来源至少包括：
+- `fmz200/wool_scripts`：cnftp、微信小程序、彩云、蓝莓/微博之外的多个 APP 脚本、小红书、知乎、百度地图、滴滴、喜马拉雅等。
+- `ddgksf2013/Scripts`：微博、彩云、Bing、知乎广告、酷安、高德、喜马拉雅等。
+- `zirawell/R-Store`：微信小程序、马蜂窝、叮咚买菜、民生/交行等银行、航司等脚本。
+- `app2smile/rules`：贴吧、起点、VGTime 等。
+- `blackmatrix7` Gist：知乎脚本。
+- 其他来源：NobyDa 脚本、Cloudflare Worker 等。
 
-## 需要特别处理的外部依赖
+同一个接口有时被配置了两个不同作者的脚本（例如酷安、京东、SMZDM 某些接口），说明原插件是融合规则，不代表所有规则经过统一兼容性验证。
 
-- 小红书相关多条响应规则指向 `royal-block-f6b1.q00.workers.dev/scripts/redbook.ads.js`。这是独立于 GitHub Raw 的远程脚本托管/Worker 地址，必须取得并审计脚本本体，才可判断数据流和远程控制风险。
-- 知乎规则引用 blackmatrix7 的 Gist 脚本。
-- 插件还引用多个 GitHub 用户仓库的 JS；即使把主插件复制到本仓库，这些依赖也不会自动消失。
+## 新增脚本样本初筛
 
-## 初步安全判断
+| 脚本 | 大小 | 观察 |
+|---|---:|---|
+| fmz200 小红书脚本 | 27,135 字符 | 含通用 Env 封装，使用 Loon/Surge/QuanX 持久化存储接口；存在 HTTP 客户端封装及 BoxJS `/v1/scripting/evaluate` 执行辅助函数。当前静态检索未证明该辅助函数被实际调用，需追踪调用点。 |
+| fmz200 知乎脚本 | 7,054 字符 | 初筛未命中显式网络请求、动态执行、Cookie/Authorization 字样；不能据此证明全脚本安全。 |
+| ddgksf2013 彩云脚本 | 2,135 字符 | 初筛未命中显式网络请求或动态执行。 |
+| ddgksf2013 Bing 脚本 | 669 字符 | 简单响应处理脚本样本，初筛未命中网络请求或动态执行。 |
+| fmz200 百度地图脚本 | 80,146 字符 | 大型混淆/打包代码，出现 fetch、XMLHttpRequest、eval 关键字；需要区分 protobuf 等库代码与业务逻辑，不能仅凭关键字判定恶意。 |
+| fmz200 滴滴脚本 | 2,641 字符 | 样本顶部注释提到需额外 IP 分流拦截；初筛未命中显式网络请求。 |
 
-1. 目前没有证据证明上述样本会窃取账号凭据或上传用户数据；同样，样本审计不足以证明它们绝对安全。
-2. `weibo_json.js` 中存在 `eval(method)`。当前代码上下文显示它用于按内部方法名选择本地函数，但仍需完整核实 `getModifyMethod` 的返回值是否严格来自固定白名单，不能把它直接等同于远程代码执行，也不能忽略。
-3. `amap.js` 的混淆降低了可审计性。独立版本应优先重写可确认的功能，而不是盲目沿用混淆脚本。
-4. 插件没有一个统一的“作者 API”可以直接替换。大部分脚本是 Loon 本地响应处理器；另有少数托管在 Worker/Gist/GitHub 的 JS。是否需要自建 API，应由具体脚本是否存在动态服务端逻辑决定。
+## 安全边界与后续处理
 
-## 尚未完成
+- 小红书脚本的 Env 封装中包含读取/写入持久化数据的能力、HTTP 请求能力以及 BoxJS 脚本执行接口。它们可能是通用兼容层，不足以单独证明数据外传或远程执行已发生；必须追踪所有调用点和具体参数。
+- 这类响应脚本运行在代理客户端上下文，权限与浏览器网页 JS 不同。尤其持久化键值、HTTP 请求、通知、BoxJS 等接口应作为重点审计面。
+- 远程 Worker 的代码尚未从原站成功取得，本轮不将其判为安全或恶意，也不复制进自有仓库。
+- 对没有明确 LICENSE 的第三方脚本，不能未经许可直接镜像并公开再发布。本项目优先采取独立重写：依据接口响应结构和可观察行为实现等价过滤，而不是把原脚本换个 Raw 地址。
+- 当前尚未完成完整的 2758 行规则归类、所有脚本调用点追踪、LICENSE 核实、图标核实、Loon 语法验证和真实 APP 实测。因此暂不提供安装链接。
 
-- 尚未逐一提取 2758 行中的全部脚本 URL。
-- 尚未取得并审计 Worker 与 Gist 脚本全部内容。
-- 尚未核实每个第三方仓库的 LICENSE/再发布许可。
-- 尚未完成规则的 APP 版本兼容性和误伤测试。
-- 尚未生成可安装的独立版插件。
+## 可复核源文件
 
-本记录只代表已检查的样本，不可外推为整个插件的安全结论。
+- 原插件：`https://yfamilys.com/plugin/adultraplus.plugin`
+- 小红书脚本：`https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/xiaohongshu/xiaohongshu.js`
+- 知乎脚本：`https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/zhihu/zhihu.js`
+- 百度地图脚本：`https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/baidumap.js`
+- 滴滴脚本：`https://raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/didi/didiAds.js`
+- 彩云脚本：`https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/caiyun_json.js`
+- Bing 脚本：`https://raw.githubusercontent.com/ddgksf2013/Scripts/refs/heads/master/bing.js`
