@@ -1,0 +1,16 @@
+#!name = 飞猪旅行去广告
+#!desc = 拦截社区已有飞猪规则指向的特定营销图片 CDN 路径；需开启 MITM，覆盖范围有限，避免整域误拦截
+#!author = ashun520
+#!homepage = https://github.com/ashun520/loon-rules
+#!icon = https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/9f/95/01/9f9501a5-9853-a1d9-917d-b1d892eac335/AppIcon-0-1x_U007emarketing-0-10-0-0-85-220-0.png/1200x630wa.png
+#!loon_version = 3.5.1
+#!tag = 去广告,飞猪
+#!system = iOS,iPadOS
+
+# 仅匹配社区规则中标注为飞猪营销素材的特定图片 URL 结构。
+# 不拦截 gw.alicdn.com 整个域名，避免影响酒店/机票/订单等正常图片资源。
+[Rewrite]
+^https?:\\/\\/gw\\.alicdn\\.com\\/imgextra\\/\\w{2}\\/[\\w!]+-\\d-tps-\\d{3}-\\d{4}\\.(jpg|png)$ reject
+
+[Mitm]
+hostname = gw.alicdn.com
