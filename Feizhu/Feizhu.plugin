@@ -10,7 +10,7 @@
 # 仅匹配社区规则中标注为飞猪营销素材的特定图片 URL 结构。
 # 不拦截 gw.alicdn.com 整个域名，避免影响酒店/机票/订单等正常图片资源。
 [Rewrite]
-^https?:\\/\\/gw\\.alicdn\\.com\\/imgextra\\/\\w{2}\\/[\\w!]+-\\d-tps-\\d{3}-\\d{4}\\.(jpg|png)$ reject
+^https?:\/\/gw\.alicdn\.com\/imgextra\/\w{2}\/[\w!]+-\d-tps-\d{3}-\d{4}\.(jpg|png)$ reject
 
 [Mitm]
 hostname = gw.alicdn.com
