@@ -1,0 +1,26 @@
+# NAME: AppleAI
+# 用途: Apple Intelligence / Siri 的 ChatGPT 扩展 / OpenAI 全系域名分流
+# policy: 落地
+# 说明: 请把本规则集放在 Apple.list 之前。Apple.list 含 DOMAIN-SUFFIX,apple.com,DIRECT，
+#       若排在前面，apple-relay.* 会先命中直连规则，导致本规则集失效。
+# updated: 2026-11-10
+
+# ===== OpenAI / ChatGPT =====
+DOMAIN-SUFFIX,openai.com,落地
+DOMAIN-SUFFIX,chatgpt.com,落地
+DOMAIN-SUFFIX,oaiusercontent.com,落地
+DOMAIN-SUFFIX,oaistatic.com,落地
+DOMAIN-SUFFIX,openaiapi-site.azureedge.net,落地
+DOMAIN,production-openaicom-storage.azureedge.net,落地
+DOMAIN,openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net,落地
+DOMAIN-SUFFIX,chatgpt.livekit.cloud,落地
+
+# ===== OpenAI 客户端依赖（功能开关 / 统计）=====
+DOMAIN-SUFFIX,featuregates.org,落地
+DOMAIN-SUFFIX,statsigapi.net,落地
+DOMAIN,api.statsig.com,落地
+
+# ===== Apple Intelligence / 私有云计算中继 =====
+DOMAIN-SUFFIX,apple-relay.apple.com,落地
+DOMAIN-SUFFIX,apple-relay.cloudflare.com,落地
+DOMAIN-SUFFIX,apple-relay.fastly-edge.com,落地
