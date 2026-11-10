@@ -1,81 +1,145 @@
 # NAME: Ai
-# CONVERTED from ddgkfs2013 gist (Clash YAML) at 2026-10-31
-# policy: 落地
-DOMAIN,api.statsig.com,落地
-DOMAIN,browser-intake-datadoghq.com,落地
-DOMAIN,static.cloudflareinsights.com,落地
-DOMAIN-SUFFIX,algolia.net,落地
-DOMAIN-SUFFIX,auth0.com,落地
-DOMAIN-SUFFIX,cloudflare.com,落地
-DOMAIN-SUFFIX,arkoselabs.com,落地
-DOMAIN-SUFFIX,statsigapi.net,落地
-DOMAIN-SUFFIX,featuregates.org,落地
-DOMAIN-SUFFIX,identrust.com,落地
-DOMAIN-SUFFIX,intercom.io,落地
-DOMAIN-SUFFIX,intercomcdn.com,落地
-DOMAIN-SUFFIX,launchdarkly.com,落地
-DOMAIN-SUFFIX,segment.io,落地
-DOMAIN-SUFFIX,amazonaws.com,落地
-DOMAIN-SUFFIX,wp.com,落地
-DOMAIN-SUFFIX,sentry.io,落地
-DOMAIN-SUFFIX,stripe.com,落地
-DOMAIN,cdn.usefathom.com,落地
-DOMAIN-SUFFIX,anthropic.com,落地
-DOMAIN-SUFFIX,claude.ai,落地
-DOMAIN-SUFFIX,claudeusercontent.com,落地
-DOMAIN-SUFFIX,cursor.sh,落地
-DOMAIN-SUFFIX,dify.ai,落地
-DOMAIN,ai.google.dev,落地
-DOMAIN,makersuite.google.com,落地
-DOMAIN-SUFFIX,gemini.google.com,落地
-DOMAIN-SUFFIX,apis.google.com,落地
-DOMAIN-SUFFIX,clients6.google.com,落地
-DOMAIN-SUFFIX,clients4.google.com,落地
-DOMAIN-SUFFIX,deepmind.com,落地
-DOMAIN-SUFFIX,deepmind.google,落地
-DOMAIN-SUFFIX,generativeai.google,落地
-DOMAIN-SUFFIX,colab.google.com,落地
-DOMAIN-SUFFIX,colab.research.google.com,落地
-DOMAIN-SUFFIX,developerprofiles.google.com,落地
-DOMAIN-SUFFIX,googleusercontent.com,落地
-DOMAIN-SUFFIX,googleapis.com,落地
-DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com,落地
-DOMAIN-SUFFIX,grazie.ai,落地
-DOMAIN-SUFFIX,meta.ai,落地
-DOMAIN-SUFFIX,meta.com,落地
-DOMAIN,api.msn.com,落地
-DOMAIN,assets.msn.com,落地
-DOMAIN,copilot.microsoft.com,落地
-DOMAIN,gateway.bingviz.microsoft.net,落地
-DOMAIN,gateway.bingviz.microsoftapp.net,落地
-DOMAIN,in.appcenter.ms,落地
-DOMAIN,location.microsoft.com,落地
-DOMAIN,odc.officeapps.live.com,落地
-DOMAIN,r.bing.com,落地
-DOMAIN,self.events.data.microsoft.com,落地
-DOMAIN,services.bingapis.com,落地
-DOMAIN,sydney.bing.com,落地
-DOMAIN,www.bing.com,落地
-DOMAIN-SUFFIX,api.microsoftapp.net,落地
-DOMAIN-SUFFIX,bing-shopping.microsoft-falcon.io,落地
-DOMAIN-SUFFIX,edgeservices.bing.com,落地
-DOMAIN-SUFFIX,midjourney.com,落地
-DOMAIN,openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net,落地
-DOMAIN,openaicomproductionae4b.blob.core.windows.net,落地
-DOMAIN,production-openaicom-storage.azureedge.net,落地
-DOMAIN-SUFFIX,ai.com,落地
-DOMAIN-SUFFIX,chatgpt.com,落地
-DOMAIN-SUFFIX,livekit.cloud,落地
-DOMAIN-SUFFIX,oaistatic.com,落地
-DOMAIN-SUFFIX,oaiusercontent.com,落地
-DOMAIN-SUFFIX,openai.com,落地
-DOMAIN-SUFFIX,azureedge.net,落地
-DOMAIN-SUFFIX,imgix.net,落地
-DOMAIN,pplx-res.cloudinary.com,落地
-DOMAIN-SUFFIX,perplexity.ai,落地
-DOMAIN-SUFFIX,pplx.ai,落地
-DOMAIN-SUFFIX,perplexity.com,落地
-DOMAIN-SUFFIX,poe.com,落地
-DOMAIN-SUFFIX,poecdn.net,落地
-DOMAIN-SUFFIX,x.ai,落地
-DOMAIN-SUFFIX,grok.com,落地
+# 用途: 所有 AI 平台 + Apple Intelligence / Siri ChatGPT 扩展分流
+# policy: Ai
+# 来源: 合并自原 Ai.list (多平台 AI) + AppleAI.list (苹果智能/OpenAI 核心)
+# 说明: 请把本规则集放在 Apple.list 之前。Apple.list 含 DOMAIN-SUFFIX,apple.com,DIRECT
+#       若排在前面，apple-relay.* 会先命中直连规则，导致苹果 AI 分流失效。
+# updated: 2026-11-10
+
+# ==================================================================
+# 【第一部分】Apple Intelligence / Siri 的 ChatGPT 扩展 —— 必须在最顶
+# ==================================================================
+# Apple 私有云计算中继（国行 iPhone + 国内 SIM 会解析到国内边缘节点，
+# 所以必须用域名级匹配强制走代理，不能靠 IP 归属地判断）
+DOMAIN-SUFFIX,apple-relay.apple.com,Ai
+DOMAIN-SUFFIX,apple-relay.cloudflare.com,Ai
+DOMAIN-SUFFIX,apple-relay.fastly-edge.com,Ai
+DOMAIN-SUFFIX,smp-device-content.apple.com,Ai
+DOMAIN-SUFFIX,xp.apple.com,Ai
+DOMAIN-SUFFIX,mesu.apple.com,Ai
+DOMAIN,guzzoni.apple.com,Ai
+DOMAIN-SUFFIX,smoot.apple.com,Ai
+DOMAIN,gateway.icloud.com,Ai
+DOMAIN,gs-loc-cn.apple.com,Ai
+DOMAIN,gspe1-ssl.ls.apple.com,Ai
+DOMAIN,p150-acsegateway.icloud.com,Ai
+DOMAIN,setup.icloud.com,Ai
+DOMAIN,bag.itunes.apple.com,Ai
+DOMAIN-SUFFIX,icloud-content.com,Ai
+DOMAIN-KEYWORD,siri,Ai
+# iTunes / App Store 部分 AI 相关元数据（不走代理会导致部分地区 AI 功能缺失）
+DOMAIN-SUFFIX,itunes.apple.com,Ai
+
+# ==================================================================
+# 【第二部分】OpenAI / ChatGPT 全系（核心域名 + CDN + 存储）
+# ==================================================================
+DOMAIN-SUFFIX,openai.com,Ai
+DOMAIN-SUFFIX,chatgpt.com,Ai
+DOMAIN-SUFFIX,oaiusercontent.com,Ai
+DOMAIN-SUFFIX,oaistatic.com,Ai
+DOMAIN-SUFFIX,openaiapi-site.azureedge.net,Ai
+DOMAIN,production-openaicom-storage.azureedge.net,Ai
+DOMAIN,openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net,Ai
+DOMAIN,openaicomproductionae4b.blob.core.windows.net,Ai
+DOMAIN-SUFFIX,chatgpt.livekit.cloud,Ai
+
+# ==================================================================
+# 【第三部分】OpenAI 客户端依赖（功能开关 / 统计 SDK）
+# ==================================================================
+DOMAIN-SUFFIX,featuregates.org,Ai
+DOMAIN-SUFFIX,statsigapi.net,Ai
+DOMAIN,api.statsig.com,Ai
+
+# ==================================================================
+# 【第四部分】Google / DeepMind / Gemini
+# ==================================================================
+DOMAIN,ai.google.dev,Ai
+DOMAIN,makersuite.google.com,Ai
+DOMAIN-SUFFIX,gemini.google.com,Ai
+DOMAIN-SUFFIX,apis.google.com,Ai
+DOMAIN-SUFFIX,clients6.google.com,Ai
+DOMAIN-SUFFIX,clients4.google.com,Ai
+DOMAIN-SUFFIX,deepmind.com,Ai
+DOMAIN-SUFFIX,deepmind.google,Ai
+DOMAIN-SUFFIX,generativeai.google,Ai
+DOMAIN-SUFFIX,colab.google.com,Ai
+DOMAIN-SUFFIX,colab.research.google.com,Ai
+DOMAIN-SUFFIX,developerprofiles.google.com,Ai
+DOMAIN-SUFFIX,googleusercontent.com,Ai
+DOMAIN-SUFFIX,googleapis.com,Ai
+DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com,Ai
+DOMAIN-SUFFIX,grazie.ai,Ai
+
+# ==================================================================
+# 【第五部分】Anthropic / Claude
+# ==================================================================
+DOMAIN-SUFFIX,anthropic.com,Ai
+DOMAIN-SUFFIX,claude.ai,Ai
+DOMAIN-SUFFIX,claudeusercontent.com,Ai
+
+# ==================================================================
+# 【第六部分】Microsoft Copilot / Bing AI
+# ==================================================================
+DOMAIN,api.msn.com,Ai
+DOMAIN,assets.msn.com,Ai
+DOMAIN,copilot.microsoft.com,Ai
+DOMAIN,gateway.bingviz.microsoft.net,Ai
+DOMAIN,gateway.bingviz.microsoftapp.net,Ai
+DOMAIN,in.appcenter.ms,Ai
+DOMAIN,location.microsoft.com,Ai
+DOMAIN,odc.officeapps.live.com,Ai
+DOMAIN,r.bing.com,Ai
+DOMAIN,self.events.data.microsoft.com,Ai
+DOMAIN,services.bingapis.com,Ai
+DOMAIN,sydney.bing.com,Ai
+DOMAIN,www.bing.com,Ai
+DOMAIN-SUFFIX,api.microsoftapp.net,Ai
+DOMAIN-SUFFIX,bing-shopping.microsoft-falcon.io,Ai
+DOMAIN-SUFFIX,edgeservices.bing.com,Ai
+
+# ==================================================================
+# 【第七部分】Meta AI / 其他 AI 平台
+# ==================================================================
+DOMAIN-SUFFIX,meta.ai,Ai
+DOMAIN-SUFFIX,meta.com,Ai
+DOMAIN-SUFFIX,midjourney.com,Ai
+DOMAIN-SUFFIX,perplexity.ai,Ai
+DOMAIN-SUFFIX,pplx.ai,Ai
+DOMAIN-SUFFIX,perplexity.com,Ai
+DOMAIN-SUFFIX,poe.com,Ai
+DOMAIN-SUFFIX,poecdn.net,Ai
+DOMAIN-SUFFIX,x.ai,Ai
+DOMAIN-SUFFIX,grok.com,Ai
+DOMAIN-SUFFIX,cursor.sh,Ai
+DOMAIN-SUFFIX,dify.ai,Ai
+DOMAIN-SUFFIX,ai.com,Ai
+
+# ==================================================================
+# 【第八部分】AI 服务依赖的通用第三方基础设施
+# ==================================================================
+DOMAIN-SUFFIX,algolia.net,Ai
+DOMAIN-SUFFIX,auth0.com,Ai
+DOMAIN-SUFFIX,arkoselabs.com,Ai
+DOMAIN-SUFFIX,identrust.com,Ai
+DOMAIN-SUFFIX,intercom.io,Ai
+DOMAIN-SUFFIX,intercomcdn.com,Ai
+DOMAIN-SUFFIX,launchdarkly.com,Ai
+DOMAIN-SUFFIX,segment.io,Ai
+DOMAIN-SUFFIX,sentry.io,Ai
+DOMAIN-SUFFIX,stripe.com,Ai
+DOMAIN-SUFFIX,wp.com,Ai
+DOMAIN-SUFFIX,imgix.net,Ai
+DOMAIN,pplx-res.cloudinary.com,Ai
+DOMAIN,browser-intake-datadoghq.com,Ai
+DOMAIN,static.cloudflareinsights.com,Ai
+DOMAIN,cdn.usefathom.com,Ai
+
+# ==================================================================
+# ⚠️ 第九部分：宽泛基础设施后缀 —— 谨慎，这些会把非 AI 流量也带代理
+# ==================================================================
+# 这些是原 Ai.list 里的宽后缀。如果加上后发现某些常规网站/APP打不开，
+# 就把这些注释掉（行首加 # ）或删掉，上面精确的 AI 域名规则已经够用了。
+DOMAIN-SUFFIX,cloudflare.com,Ai
+DOMAIN-SUFFIX,amazonaws.com,Ai
+DOMAIN-SUFFIX,azureedge.net,Ai
+DOMAIN-SUFFIX,livekit.cloud,Ai
