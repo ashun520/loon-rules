@@ -2,7 +2,6 @@
 #!desc = 陌陌 iOS 去广告（保守版）：拦截陌陌自有广告投放/开放广告/游戏广告子域。本插件无需 MITM，不产生解密开销；若开屏广告来自穿山甲、优量汇、快手联盟等第三方 SDK，需要配合通用广告拦截插件。
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
-#!icon = https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Momo.png
 #!system = iOS,iPadOS
 #!loon_version = 3.5.1
 #!tag = 去广告,陌陌
