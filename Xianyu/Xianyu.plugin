@@ -1,0 +1,71 @@
+#!name = 闲鱼去广告
+#!desc = 闲鱼 iOS 去广告：开屏广告、首页/搜索信息流推广卡、商品详情推荐流、我的页策略接口；保留商品、交易、聊天等核心接口。需开启 MITM 并信任 Loon 证书。
+#!author = ashun520（规则参考 huangkouping/egern 公开配置）
+#!homepage = https://github.com/ashun520/loon-rules
+#!icon = https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/FleaMarket.png
+#!system = iOS,iPadOS
+#!loon_version = 3.5.1(983)
+#!tag = 去广告,闲鱼
+#!type = normal
+
+[Rule]
+# 优酷广告联盟（闲鱼内嵌广告使用）
+DOMAIN-SUFFIX,iyes.youku.com,REJECT
+# 强制 mtop 接口走 TCP，否则 HTTP/3 流量无法被 MITM 重写
+AND,((DOMAIN-SUFFIX,goofish.com),(PROTOCOL,QUIC)),REJECT
+
+[Rewrite]
+# ===== 开屏广告：返回合法空广告结构，避免 App 解析失败后回退到广告 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlecommerce\.splash\.ads(\/|\?|$) response-body-json-jq '{"api":"mtop.taobao.idlecommerce.splash.ads","data":{"adMap":{},"cacheAd":"","cacheAdInfo":{},"dspList":[],"hotStartInterval":"0"},"ret":["SUCCESS::调用成功"],"v":"2.0"}'
+
+# ===== 通用广告曝光接口 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.idle\.ad\.expose(\/|\?|$) reject-dict
+
+# ===== 首页信息流：只保留金刚位与商品卡，去掉 banner/妈妈广告 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.nextfresh(\/|\?|$) response-body-json-jq '. as $o | try (.data.homeTopList |= map(select(.sectionType? == "kingkongDo")) | .data.sections |= map(select(((.data.clickParam.args.cardType? // "") != "homeMultiBanner") and ((.data.clickParam.args.cardType? // "") != "mamaAD"))) | .data.sections |= map(select((.template.name? // "") as $n | ($n == "idlefish_home_new_commodity_card") or ($n | contains("fish_home_tags_item_card"))))) catch $o'
+
+# ===== 首页小组件刷新 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.widget\.refresh\.get(\/|\?|$) response-body-json-jq '. as $o | try (.data.homeTopList |= map(select(.sectionType? == "kingkongDo"))) catch $o'
+
+# ===== 首页鲸探模块：只留小程序卡 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.home\.whale\.modulet(\/|\?|$) response-body-json-jq '. as $o | try (.data.container.sections |= map(select(.template.name? == "fish_home_miniapp"))) catch $o'
+
+# ===== 我的页策略接口 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.user\.strategy\.list(\/|\?|$) reject-dict
+
+# ===== 关注页信息流：只保留关注卡片 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.fun\.follow\.feed\.list(\/|\?|$) response-body-json-jq '. as $o | try (.data.sections |= map(select(.cardType? == 2001))) catch $o'
+
+# ===== 社区页：只保留商品与内容卡 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.community(\/|\?|$) response-body-json-jq '. as $o | try (.data.feedsList |= map(select(((.template.name? // "") == "idlefish_home_new_commodity_card") or ((.template.name? // "") == "idlefish_home_new_content_card")))) catch $o'
+
+# ===== 商品详情推荐流 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.item\.recommend\.list(\/|\?|$) reject-dict
+
+# ===== 首页新商品分页：去掉 banner/妈妈广告 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlehome\.home\.newitem\.page(\/|\?|$) response-body-json-jq '. as $o | try (.data.sections |= map(select(((.data.clickParam.args.cardType? // "") != "banner") and ((.data.clickParam.args.cardType? // "") != "mamaAD")))) catch $o'
+
+# ===== 同城附近角标 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.near\.by\.corner\.info(\/|\?|$) reject-dict
+
+# ===== 同城首页楼层 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.local\.home(\/|\?|$) response-body-json-jq '. as $o | try (.data.sections |= map(select(((.template.cardEnum? // "") != "ads") and ((.cardType? // "") == "common")))) catch $o'
+
+# ===== 搜索页浮层广告 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\.shade(\/|\?|$) reject-dict
+
+# ===== 搜索结果：去掉广告商品与顶部推广条 =====
+^https?:\/\/g-acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search(\/|\?|$) response-body-json-jq '. as $o | try (.data.resultList |= map(select((.data.item.main.exContent.dislikeFeedback.clickParam.args.bizType? // "") != "ad")) | delpaths([["data","resultPrefixBar"]])) catch $o'
+
+# ===== 搜索发现页：去掉营销热点 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.search\.discover(\/|\?|$) response-body-json-jq '. as $o | try (.data.resultList |= map(select(.type? != "MarketHotSpot"))) catch $o'
+
+# ===== 搜索热词激活：去掉热词卡片内容 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemtopsearch\.item\.search\.activate(\/|\?|$) response-body-json-jq '. as $o | try (.data.cardList |= map(if ((.cardData|type) == "object") and (.cardData|has("hotwords")) then .cardData |= del(.hotwords) else . end)) catch $o'
+
+# ===== 猜你喜欢 / 交易页推荐流 =====
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.playboy\.recommend(\/|\?|$) reject-dict
+^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idle\.item\.buy\.feeds(\/|\?|$) reject-dict
+
+[MITM]
+hostname = acs.m.goofish.com, g-acs.m.goofish.com

@@ -1,6 +1,6 @@
 #!name = 懂车帝强效去广告
-#!desc = 懂车帝 9.2.9 开屏广告拦截适配；拦截已验证的开屏视频素材域及第三方曝光/点击监测域，补充 QUIC 定向规则；不拦截内容视频域，不需要 MITM
-#!author = ashun520
+#!desc = 懂车帝去广告：拦截开屏广告配置与广告素材域、清理首页/文章/搜索信息流广告；不拦截内容视频域，需开启 MITM 并信任 Loon 证书。
+#!author = ashun520（规则参考 xiaomaoJT/QxScript 公开配置）
 #!homepage = https://github.com/ashun520/loon-rules
 #!icon = https://raw.githubusercontent.com/Thelongdarkorg/loon-plugins/main/icons/dongchedi.jpg
 #!loon_version = 3.5.1
@@ -23,3 +23,29 @@ DOMAIN-SUFFIX,gridsumdissector.com,REJECT
 AND,((DOMAIN-SUFFIX,miaozhen.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,ctrmi.cn),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,gridsumdissector.com),(PROTOCOL,QUIC)),REJECT
+
+# 强制 API 走 TCP，否则 HTTP/3 流量无法被 MITM 重写
+AND,((DOMAIN-SUFFIX,dcarapi.com),(PROTOCOL,QUIC)),REJECT
+
+[Rewrite]
+# ===== 开屏广告配置：返回空对象，App 会跳过广告直接进首页 =====
+^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/ad(\/|\?|$) reject-dict
+
+# ===== 首页信息流：去掉“广告”标签条目、节目卡与视频详情卡 =====
+^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/stream_entrance\/get_feed(\/|\?|$) response-body-json-jq '. as $o | try (if (.data|type) == "array" then .data |= map(select((((.info // {}).label? // "") != "广告") and (((.info // {}).title_prefix? // "") != "节目") and ((((.info // {}) | has("video_detail_info"))) | not))) else . end) catch $o'
+
+# ===== 文章详情：去掉广告位、购车卡片、推荐与分享模块 =====
+^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/information\/api\/full(\/|\?|$) response-body-json-jq '. as $o | try (if (.data|type) == "object" then del(.data.content_attitude, .data.motor_material_car_info, .data.ordered_info, .data.share_info) else . end) catch $o'
+
+# ===== 搜索页：清空顶部推广提醒 =====
+^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/searchpage\/launcher\/main\/v1(\/|\?|$) response-body-json-jq '. as $o | try (if (.data|type) == "object" then .data.more_remind = {} else . end) catch $o'
+
+# ===== 右下角悬浮直播挂件 =====
+^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/dlive\/api\/get_feed_widget(\/|\?|$) reject-dict
+
+[MITM]
+hostname = *.dcarapi.com
+
+# 规则依据：参考 xiaomaoJT/QxScript 公开的懂车帝规则并做保守化处理。
+# 只重写已验证的广告配置与信息流接口，不拦截 dcarapi 普通内容接口，避免首页/详情页空白。
+# 若某版本开屏改为第三方广告 SDK 投放，需补充对应广告平台域名。
