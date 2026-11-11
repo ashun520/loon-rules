@@ -1,0 +1,30 @@
+#!name = 陌陌去广告
+#!desc = 陌陌 iOS 去广告（保守版）：拦截陌陌自有广告投放/开放广告/游戏广告子域。本插件无需 MITM，不产生解密开销；若开屏广告来自穿山甲、优量汇、快手联盟等第三方 SDK，需要配合通用广告拦截插件。
+#!author = ashun520
+#!homepage = https://github.com/ashun520/loon-rules
+#!icon = https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Momo.png
+#!system = iOS,iPadOS
+#!loon_version = 3.5.1
+#!tag = 去广告,陌陌
+
+[Rule]
+# 陌陌自有广告投放域（含其子域）
+DOMAIN-SUFFIX,ad.immomo.com,REJECT
+DOMAIN-SUFFIX,openad.immomo.com,REJECT
+DOMAIN-SUFFIX,game-ad.immomo.com,REJECT
+# 广告后台/测试域，客户端正常不会访问，出现即拦截
+DOMAIN-SUFFIX,ad-admin.immomo.com,REJECT
+
+# QUIC 定向阻断：上述广告域的 HTTP/3 请求无法被规则层按域名拦截时兜底
+AND,((DOMAIN-SUFFIX,ad.immomo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,openad.immomo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,game-ad.immomo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,ad-admin.immomo.com),(PROTOCOL,QUIC)),REJECT
+
+# 说明：
+# 1. 陌陌的开屏广告有相当一部分通过第三方广告 SDK 投放，域名不属于 immomo.com，
+#    请配合 BlockAdvertisers（可莉）等通用插件使用，本插件只负责陌陌自有广告域。
+# 2. 陌陌核心接口（api.immomo.com）同时承载聊天、动态、直播等业务，整域拦截会导致 App 无法使用，
+#    因此本插件不做 MITM 改写，避免误伤。
+# 3. 若拦截后仍有开屏广告，请在 Loon「请求」日志里筛选 immomo，找到开屏瞬间出现的广告请求 URL，
+#    把完整 URL 发回仓库 issue，可据此补充精确规则。
