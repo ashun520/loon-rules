@@ -1,0 +1,7 @@
+# Trae 本地配置与 skill：绝不推送到公开仓库
+.trae/
+
+# 临时文件
+*.log
+*.tmp
+.DS_Store
