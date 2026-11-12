@@ -29,7 +29,14 @@
 ```
 
 ## App Store 下载问题（AppStore.list 完整说明）
-### 【问题根因】三重原因叠加：
+### 【真正根因（2026-11-12 实测定位）】bag.itunes.apple.com 被 Ai.list 抢走
+- `bag.itunes.apple.com` 是 App Store 下载/登录流程的**第一步**（bag 配置 API），不是 AI 域名
+- 它曾以 `DOMAIN,bag.itunes.apple.com,Ai` 精确匹配放在 Ai.list 里 → 走 SG-HY2 → Cloudflare 数据中心 IP 被苹果风控在第一步直接拒绝 → 后续 mzstatic 下载规则根本没机会执行
+- **规则优先级坑**：Ai.list 排第 1 位、AppStore.list 排第 2 位，bag 在 Ai.list 先命中，AppStore.list 写了后缀规则也轮不到
+- 用户实测：禁用整个 Ai.list → 任何节点都能下载；Ai 策略组换移动电信节点 → 能下载；只开 Ai.list 用 SG-HY2 → 失败
+- 修复：Ai.list 删除 bag 规则，AppStore.list 显式补 `DOMAIN,bag.itunes.apple.com,其他`
+
+### 【背景原因】节点 IP 风控分层：
 1. SG-HY2 节点出口 IP 是 Cloudflare 数据中心段（104.x / 172.64.x / 198.41.x），苹果风控标记为风险段
 2. Loon 的 DIRECT ≠ 真正绕开 VPN：iOS 有 VPN profile 时所有流量先到隧道，Loon DIRECT 的 DNS/QUIC 可能被异常处理
 3. 移动电信 vmess 节点出口是住宅 IP 段（延迟 131-132ms 那些），苹果不拦截
@@ -46,11 +53,13 @@
 - 结论：Loon 对 App Store 域名的 DIRECT 处理有问题，必须让它明确走一个干净的代理节点
 
 ### 【Ai.list 变动记录】
-已从 Ai.list 删除两行（移到 AppStore.list）：
+已从 Ai.list 删除三行（全部移到 AppStore.list）：
 - `DOMAIN-SUFFIX,itunes.apple.com,Ai`
 - `DOMAIN-SUFFIX,icloud-content.com,Ai`
+- `DOMAIN,bag.itunes.apple.com,Ai`（**最关键**，曾是下载失败的真正根因）
 
-Ai.list 保留 `DOMAIN,bag.itunes.apple.com,Ai` —— 这是精确匹配 Apple AI 内部元数据 API endpoint，和 App Store 下载无关。
+Ai.list 里**不得再出现任何 itunes / mzstatic / appleid / icloud-content 域名**，
+App Store 相关域名一律归 AppStore.list 管。
 
 ## GEOIP,CN 本地规则（关键约定）
 - **开关：关闭（灰色）**
@@ -93,9 +102,9 @@ DOMAIN,gs-loc-cn.apple.com,Ai
 DOMAIN,gspe1-ssl.ls.apple.com,Ai
 DOMAIN,p150-acsegateway.icloud.com,Ai
 DOMAIN,setup.icloud.com,Ai
-DOMAIN,bag.itunes.apple.com,Ai
 DOMAIN-KEYWORD,siri,Ai
 ```
+（bag.itunes.apple.com 已移至 AppStore.list，不在此清单中）
 App Store 浏览/下载/登录域名（itunes.apple.com、icloud-content.com、mzstatic.com 等）统一走独立的 `AppStore.list` → `其他` 策略组（移动电信节点），避开苹果风控。
 
 ## AI 助手下次工作前的标准启动步骤
