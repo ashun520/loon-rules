@@ -24,7 +24,10 @@ DOMAIN,gs-loc-cn.apple.com,Ai
 DOMAIN,gspe1-ssl.ls.apple.com,Ai
 DOMAIN,p150-acsegateway.icloud.com,Ai
 DOMAIN,setup.icloud.com,Ai
-DOMAIN,bag.itunes.apple.com,Ai
+# 注意：bag.itunes.apple.com 已移至 AppStore.list
+# 它是 App Store 下载/登录流程的第一步（bag 配置 API），不是 AI 域名。
+# 留在 Ai.list 会走 SG-HY2 数据中心 IP，被苹果风控在第一步直接拒绝，
+# 导致后续 mzstatic 下载 CDN 规则根本没机会执行。
 DOMAIN-KEYWORD,siri,Ai
 
 # ==================================================================
