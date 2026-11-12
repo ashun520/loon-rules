@@ -12,54 +12,31 @@
 
 ### 策略组名
 - AI 分流策略组: `AI策略组`（Ai.list、AI 相关规则统一走此策略组，常用节点 SG-HY2）
-- App Store 策略组: `其他`（AppStore.list 走此策略组，必须手动选移动电信 vmess 节点）
 - Final 兜底: `落地`（海外节点，用户不定期更换，不要硬编码节点名）
 
 ### 规则集顺序（从上到下）
 ```
 ① Ai.list                 → AI策略组    ← 必须排最顶，不能被 Apple.list 吃掉 apple-relay
-② AppStore.list           → 其他        ← App Store 专用，必须走移动电信节点避开苹果风控
-③ adrules                 → REJECT
-④ LAN                     → DIRECT
-⑤ Apple.list              → DIRECT     ← 含 DOMAIN-SUFFIX,apple.com,DIRECT，所以 Ai 必须在它前面
-⑥ China.list              → DIRECT
-⑦ GEOIP,CN 本地规则        → DIRECT     ← 开关必须关闭（灰色），放在 China.list 之后、Final 之前
-⑧ 海外媒体 / TikTok
-⑨ Final                    → 落地
+② adrules                 → REJECT
+③ LAN                     → DIRECT
+④ Apple.list              → DIRECT     ← 含 DOMAIN-SUFFIX,apple.com,DIRECT
+⑤ China.list              → DIRECT
+⑥ GEOIP,CN 本地规则        → DIRECT     ← 开关必须关闭（灰色），放在 China.list 之后、Final 之前
+⑦ 海外媒体 / TikTok
+⑧ Final                    → 落地
 ```
 
-## App Store 下载问题（AppStore.list 完整说明）
-### 【真正根因（2026-11-12 实测定位）】bag.itunes.apple.com 被 Ai.list 抢走
-- `bag.itunes.apple.com` 是 App Store 下载/登录流程的**第一步**（bag 配置 API），不是 AI 域名
-- 它曾以 `DOMAIN,bag.itunes.apple.com,Ai` 精确匹配放在 Ai.list 里 → 走 SG-HY2 → Cloudflare 数据中心 IP 被苹果风控在第一步直接拒绝 → 后续 mzstatic 下载规则根本没机会执行
-- **规则优先级坑**：Ai.list 排第 1 位、AppStore.list 排第 2 位，bag 在 Ai.list 先命中，AppStore.list 写了后缀规则也轮不到
+## App Store 下载问题（已解决，留教训）
+### 【真正根因（2026-11-12 已修复）】bag.itunes.apple.com 被 Ai.list 误加
+- `bag.itunes.apple.com` 是 App Store 下载/登录流程的**第一步**（bag 配置 API），**不是 AI 域名**
+- 它曾被误加进 Ai.list → 精确匹配 → 走 SG-HY2 → Cloudflare 数据中心 IP 被苹果风控在第一步直接拒绝
+- 后续 appleid 登录和 mzstatic 下载 CDN 规则根本没机会执行
 - 用户实测：禁用整个 Ai.list → 任何节点都能下载；Ai 策略组换移动电信节点 → 能下载；只开 Ai.list 用 SG-HY2 → 失败
-- 修复：Ai.list 删除 bag 规则，AppStore.list 显式补 `DOMAIN,bag.itunes.apple.com,其他`
-
-### 【背景原因】节点 IP 风控分层：
-1. SG-HY2 节点出口 IP 是 Cloudflare 数据中心段（104.x / 172.64.x / 198.41.x），苹果风控标记为风险段
-2. Loon 的 DIRECT ≠ 真正绕开 VPN：iOS 有 VPN profile 时所有流量先到隧道，Loon DIRECT 的 DNS/QUIC 可能被异常处理
-3. 移动电信 vmess 节点出口是住宅 IP 段（延迟 131-132ms 那些），苹果不拦截
-
-### 【「其他」策略组创建步骤】
-1. Loon → 配置 → 策略组 → 新建
-2. **名称**：其他
-3. **类型**：select（手动选择）或自动选择（按延迟）
-4. **节点**：把所有「移动联通>电信」vmess 节点加进去
-5. 用 App Store 时，在「其他」里选移动电信节点
-
-### 【为什么 AppStore.list 必须走「其他」而不是 DIRECT？】
-- 实测：关闭 Loon → 下载 ✅ → 走移动电信 vmess → 下载 ✅ → 走 DIRECT → 下载 ❌
-- 结论：Loon 对 App Store 域名的 DIRECT 处理有问题，必须让它明确走一个干净的代理节点
-
-### 【Ai.list 变动记录】
-已从 Ai.list 删除三行（全部移到 AppStore.list）：
-- `DOMAIN-SUFFIX,itunes.apple.com,Ai`
-- `DOMAIN-SUFFIX,icloud-content.com,Ai`
-- `DOMAIN,bag.itunes.apple.com,Ai`（**最关键**，曾是下载失败的真正根因）
-
-Ai.list 里**不得再出现任何 itunes / mzstatic / appleid / icloud-content 域名**，
-App Store 相关域名一律归 AppStore.list 管。
+- 修复：Ai.list 删除 bag 规则。**AppStore.list 也已删除**——因为国行 iPhone + 国内 SIM，
+  苹果的 App Store/Apple ID/下载 CDN 在国内有边缘节点，自动走 Apple.list → DIRECT 直连最快最稳，
+  不需要单独规则集。
+- **教训**：Ai.list 里**绝对不能出现任何 itunes / mzstatic / appleid / icloud-content 域名**，
+  App Store 相关域名一律让 Apple.list 的 apple.com 后缀去兜底直连。
 
 ## GEOIP,CN 本地规则（关键约定）
 - **开关：关闭（灰色）**
@@ -104,8 +81,7 @@ DOMAIN,p150-acsegateway.icloud.com,Ai
 DOMAIN,setup.icloud.com,Ai
 DOMAIN-KEYWORD,siri,Ai
 ```
-（bag.itunes.apple.com 已移至 AppStore.list，不在此清单中）
-App Store 浏览/下载/登录域名（itunes.apple.com、icloud-content.com、mzstatic.com 等）统一走独立的 `AppStore.list` → `其他` 策略组（移动电信节点），避开苹果风控。
+⚠️ **严禁加入** bag.itunes.apple.com / itunes.apple.com / mzstatic.com / appleid.apple.com / icloud-content.com —— 这些是 App Store 域名，让 Apple.list 的 apple.com 后缀自动兜底直连。
 
 ## AI 助手下次工作前的标准启动步骤
 1. 读取 `https://raw.githubusercontent.com/ashun520/loon-rules/main/ASHUN_LOON_PROFILE.md`（本文件）
