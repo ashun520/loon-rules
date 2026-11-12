@@ -11,13 +11,14 @@
 ## Loon 策略组与规则顺序（固定，不要改）
 
 ### 策略组名
-- AI 分流策略组: `AI策略组`（AppleAI.list、Ai.list、AI 相关规则统一走此策略组）
+- AI 分流策略组: `AI策略组`（Ai.list、AI 相关规则统一走此策略组，常用节点 SG-HY2）
+- App Store 策略组: `其他`（AppStore.list 走此策略组，必须手动选移动电信 vmess 节点）
 - Final 兜底: `落地`（海外节点，用户不定期更换，不要硬编码节点名）
 
 ### 规则集顺序（从上到下）
 ```
-① Ai.list / AppleAI.list  → AI策略组    ← 必须排最顶，不能被 Apple.list 吃掉 apple-relay
-② AppStore.list           → DIRECT      ← App Store 浏览/登录/下载专用，强制直连避开苹果风控
+① Ai.list                 → AI策略组    ← 必须排最顶，不能被 Apple.list 吃掉 apple-relay
+② AppStore.list           → 其他        ← App Store 专用，必须走移动电信节点避开苹果风控
 ③ adrules                 → REJECT
 ④ LAN                     → DIRECT
 ⑤ Apple.list              → DIRECT     ← 含 DOMAIN-SUFFIX,apple.com,DIRECT，所以 Ai 必须在它前面
@@ -27,11 +28,29 @@
 ⑨ Final                    → 落地
 ```
 
-## App Store 下载问题（AppStore.list 说明）
-- **问题根因**：SG-HY2 节点出口 IP 是 Cloudflare 数据中心段（104.x / 172.64.x / 198.41.x），苹果风控标记为风险段
-- **表现**：App Store 浏览 OK，但登录/下载报错（苹果只在登录和大流量下载请求时检查 IP 信誉）
-- **解决方案**：`itunes.apple.com`、`icloud-content.com`、`mzstatic.com` 等 App Store 域名从 Ai.list 剥离出来，单独放 `AppStore.list` 强制直连（移动电信住宅 IP 段苹果不拦截）
-- **Ai.list 变动**：已删除 `DOMAIN-SUFFIX,itunes.apple.com,Ai` 和 `DOMAIN-SUFFIX,icloud-content.com,Ai`
+## App Store 下载问题（AppStore.list 完整说明）
+### 【问题根因】三重原因叠加：
+1. SG-HY2 节点出口 IP 是 Cloudflare 数据中心段（104.x / 172.64.x / 198.41.x），苹果风控标记为风险段
+2. Loon 的 DIRECT ≠ 真正绕开 VPN：iOS 有 VPN profile 时所有流量先到隧道，Loon DIRECT 的 DNS/QUIC 可能被异常处理
+3. 移动电信 vmess 节点出口是住宅 IP 段（延迟 131-132ms 那些），苹果不拦截
+
+### 【「其他」策略组创建步骤】
+1. Loon → 配置 → 策略组 → 新建
+2. **名称**：其他
+3. **类型**：select（手动选择）或自动选择（按延迟）
+4. **节点**：把所有「移动联通>电信」vmess 节点加进去
+5. 用 App Store 时，在「其他」里选移动电信节点
+
+### 【为什么 AppStore.list 必须走「其他」而不是 DIRECT？】
+- 实测：关闭 Loon → 下载 ✅ → 走移动电信 vmess → 下载 ✅ → 走 DIRECT → 下载 ❌
+- 结论：Loon 对 App Store 域名的 DIRECT 处理有问题，必须让它明确走一个干净的代理节点
+
+### 【Ai.list 变动记录】
+已从 Ai.list 删除两行（移到 AppStore.list）：
+- `DOMAIN-SUFFIX,itunes.apple.com,Ai`
+- `DOMAIN-SUFFIX,icloud-content.com,Ai`
+
+Ai.list 保留 `DOMAIN,bag.itunes.apple.com,Ai` —— 这是精确匹配 Apple AI 内部元数据 API endpoint，和 App Store 下载无关。
 
 ## GEOIP,CN 本地规则（关键约定）
 - **开关：关闭（灰色）**
@@ -59,7 +78,7 @@
 | 懂车帝 | `Dongchedi/Dongchedi.plugin` | 内联 jq | dcarapi.com |
 | 陌陌 | `Momo/Momo.plugin` | `Momo/momo_cleaner.js` | api.immomo.com |
 
-## Apple AI 分流域名（Ai.list 第一部分，已剥离 App Store 域名到 AppStore.list）
+## Apple AI 分流域名（Ai.list 第一部分，App Store 域名已剥离到 AppStore.list）
 ```
 DOMAIN-SUFFIX,apple-relay.apple.com,Ai
 DOMAIN-SUFFIX,apple-relay.cloudflare.com,Ai
@@ -77,7 +96,7 @@ DOMAIN,setup.icloud.com,Ai
 DOMAIN,bag.itunes.apple.com,Ai
 DOMAIN-KEYWORD,siri,Ai
 ```
-App Store 相关域名（itunes.apple.com、icloud-content.com 等）已移到独立的 `AppStore.list`，统一走 DIRECT 直连避开苹果风控。
+App Store 浏览/下载/登录域名（itunes.apple.com、icloud-content.com、mzstatic.com 等）统一走独立的 `AppStore.list` → `其他` 策略组（移动电信节点），避开苹果风控。
 
 ## AI 助手下次工作前的标准启动步骤
 1. 读取 `https://raw.githubusercontent.com/ashun520/loon-rules/main/ASHUN_LOON_PROFILE.md`（本文件）
