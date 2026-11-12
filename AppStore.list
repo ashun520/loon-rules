@@ -1,0 +1,33 @@
+# NAME: AppStore
+# 用途: App Store 浏览/登录/下载专用域名（强制 DIRECT，走本地直连/移动电信节点）
+# policy: DIRECT
+# 来源: 从 Ai.list 剥离 itunes.apple.com / icloud-content.com 至此文件
+# 说明: 必须放在 Ai.list 之后、Apple.list 之前。
+#       原理：SG-HY2 节点出口 IP 是 Cloudflare 数据中心段，苹果风控标记为风险，
+#       导致 App Store 登录/下载报错。本规则强制直连，移动电信住宅 IP 段苹果不拦截。
+# updated: 2026-11-12
+
+# ==================================================================
+# 【App Store 浏览/搜索 API】
+# ==================================================================
+DOMAIN-SUFFIX,itunes.apple.com,DIRECT
+
+# ==================================================================
+# 【Apple ID 登录 / 身份验证】
+# ==================================================================
+DOMAIN-SUFFIX,appleid.apple.com,DIRECT
+DOMAIN-SUFFIX,idmsa.apple.com,DIRECT
+DOMAIN-SUFFIX,id.apple.com,DIRECT
+
+# ==================================================================
+# 【App Store 下载 CDN】
+# ==================================================================
+DOMAIN-SUFFIX,mzstatic.com,DIRECT
+DOMAIN-SUFFIX,dl.apple.com,DIRECT
+DOMAIN-SUFFIX,s.dl.apple.com,DIRECT
+DOMAIN-SUFFIX,swdist.apple.com,DIRECT
+
+# ==================================================================
+# 【iCloud 内容分发】
+# ==================================================================
+DOMAIN-SUFFIX,icloud-content.com,DIRECT

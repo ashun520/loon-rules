@@ -17,14 +17,21 @@
 ### 规则集顺序（从上到下）
 ```
 ① Ai.list / AppleAI.list  → AI策略组    ← 必须排最顶，不能被 Apple.list 吃掉 apple-relay
-② adrules                 → REJECT
-③ LAN                     → DIRECT
-④ Apple.list              → DIRECT     ← 含 DOMAIN-SUFFIX,apple.com,DIRECT，所以 Ai 必须在它前面
-⑤ China.list              → DIRECT
-⑥ GEOIP,CN 本地规则        → DIRECT     ← 开关必须关闭（灰色），放在 China.list 之后、Final 之前
-⑦ 海外媒体 / TikTok
-⑧ Final                    → 落地
+② AppStore.list           → DIRECT      ← App Store 浏览/登录/下载专用，强制直连避开苹果风控
+③ adrules                 → REJECT
+④ LAN                     → DIRECT
+⑤ Apple.list              → DIRECT     ← 含 DOMAIN-SUFFIX,apple.com,DIRECT，所以 Ai 必须在它前面
+⑥ China.list              → DIRECT
+⑦ GEOIP,CN 本地规则        → DIRECT     ← 开关必须关闭（灰色），放在 China.list 之后、Final 之前
+⑧ 海外媒体 / TikTok
+⑨ Final                    → 落地
 ```
+
+## App Store 下载问题（AppStore.list 说明）
+- **问题根因**：SG-HY2 节点出口 IP 是 Cloudflare 数据中心段（104.x / 172.64.x / 198.41.x），苹果风控标记为风险段
+- **表现**：App Store 浏览 OK，但登录/下载报错（苹果只在登录和大流量下载请求时检查 IP 信誉）
+- **解决方案**：`itunes.apple.com`、`icloud-content.com`、`mzstatic.com` 等 App Store 域名从 Ai.list 剥离出来，单独放 `AppStore.list` 强制直连（移动电信住宅 IP 段苹果不拦截）
+- **Ai.list 变动**：已删除 `DOMAIN-SUFFIX,itunes.apple.com,Ai` 和 `DOMAIN-SUFFIX,icloud-content.com,Ai`
 
 ## GEOIP,CN 本地规则（关键约定）
 - **开关：关闭（灰色）**
@@ -52,23 +59,25 @@
 | 懂车帝 | `Dongchedi/Dongchedi.plugin` | 内联 jq | dcarapi.com |
 | 陌陌 | `Momo/Momo.plugin` | `Momo/momo_cleaner.js` | api.immomo.com |
 
-## Apple AI 分流域名（AppleAI.list 核心）
+## Apple AI 分流域名（Ai.list 第一部分，已剥离 App Store 域名到 AppStore.list）
 ```
-DOMAIN-SUFFIX,openai.com,AI策略组
-DOMAIN-SUFFIX,chatgpt.com,AI策略组
-DOMAIN-SUFFIX,oaiusercontent.com,AI策略组
-DOMAIN-SUFFIX,oaistatic.com,AI策略组
-DOMAIN-SUFFIX,openaiapi-site.azureedge.net,AI策略组
-DOMAIN,production-openaicom-storage.azureedge.net,AI策略组
-DOMAIN,openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net,AI策略组
-DOMAIN-SUFFIX,chatgpt.livekit.cloud,AI策略组
-DOMAIN-SUFFIX,apple-relay.apple.com,AI策略组
-DOMAIN-SUFFIX,apple-relay.cloudflare.com,AI策略组
-DOMAIN-SUFFIX,apple-relay.fastly-edge.com,AI策略组
-DOMAIN-SUFFIX,itunes.apple.com,AI策略组
-DOMAIN-KEYWORD,siri,AI策略组
-DOMAIN-SUFFIX,icloud-content.com,AI策略组
+DOMAIN-SUFFIX,apple-relay.apple.com,Ai
+DOMAIN-SUFFIX,apple-relay.cloudflare.com,Ai
+DOMAIN-SUFFIX,apple-relay.fastly-edge.com,Ai
+DOMAIN-SUFFIX,smp-device-content.apple.com,Ai
+DOMAIN-SUFFIX,xp.apple.com,Ai
+DOMAIN-SUFFIX,mesu.apple.com,Ai
+DOMAIN,guzzoni.apple.com,Ai
+DOMAIN-SUFFIX,smoot.apple.com,Ai
+DOMAIN,gateway.icloud.com,Ai
+DOMAIN,gs-loc-cn.apple.com,Ai
+DOMAIN,gspe1-ssl.ls.apple.com,Ai
+DOMAIN,p150-acsegateway.icloud.com,Ai
+DOMAIN,setup.icloud.com,Ai
+DOMAIN,bag.itunes.apple.com,Ai
+DOMAIN-KEYWORD,siri,Ai
 ```
+App Store 相关域名（itunes.apple.com、icloud-content.com 等）已移到独立的 `AppStore.list`，统一走 DIRECT 直连避开苹果风控。
 
 ## AI 助手下次工作前的标准启动步骤
 1. 读取 `https://raw.githubusercontent.com/ashun520/loon-rules/main/ASHUN_LOON_PROFILE.md`（本文件）

@@ -25,10 +25,7 @@ DOMAIN,gspe1-ssl.ls.apple.com,Ai
 DOMAIN,p150-acsegateway.icloud.com,Ai
 DOMAIN,setup.icloud.com,Ai
 DOMAIN,bag.itunes.apple.com,Ai
-DOMAIN-SUFFIX,icloud-content.com,Ai
 DOMAIN-KEYWORD,siri,Ai
-# iTunes / App Store 部分 AI 相关元数据（不走代理会导致部分地区 AI 功能缺失）
-DOMAIN-SUFFIX,itunes.apple.com,Ai
 
 # ==================================================================
 # 【第二部分】OpenAI / ChatGPT 全系（核心域名 + CDN + 存储）
