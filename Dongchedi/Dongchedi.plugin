@@ -1,4 +1,4 @@
-#!name = 懂车帝强效去广告
+#!name = 懂车帝去广告 v5
 #!desc = 懂车帝去广告：拦截开屏广告配置与广告素材域、清理首页/文章/搜索信息流广告；不拦截内容视频域，需开启 MITM 并信任 Loon 证书。
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
