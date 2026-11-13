@@ -75,8 +75,9 @@ AND,((DOMAIN,push.m.youku.com),(PROTOCOL,QUIC)),REJECT
 # ===== 搜索页：过滤无业务数据的推广节点 =====
 ^https:\/\/acs\.youku\.com\/gw\/mtop\.youku\.soku\.yksearch(\/|\?) response-body-json-jq '. as $o | try (if (.data.nodes|type)=="array" then (.data.nodes |= map(if (type=="object" and has("data")) then . else empty end)) else . end) catch $o'
 
-# ===== 播放页弹窗广告素材/位置预加载：返回空对象，保留接口状态 =====
-^https:\/\/acs\.youku\.com\/gw\/mtop\.youku\.(pisp\.scripts\.get|xspace\.play\.position\.preload\.query|xspace\.poplayer\.position\.query)(\/|\?) reject-dict
+[Script]
+# 播放页广告脚本 / 广告位预加载 / 弹层广告：返回结构合法的空数据，避免 reject 导致播放器回退
+http-response ^https:\/\/acs\.youku\.com\/gw\/mtop\.youku\.(pisp\.scripts\.get|xspace\.play\.position\.preload\.query|xspace\.poplayer\.position\.query)(\/|\?) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Youku/youku_cleaner.js?v=20261113, max-size=10485760, timeout=30, tag=优酷广告清洗
 
 [MITM]
 hostname = acs.youku.com, un-acs.youku.com, push.m.youku.com

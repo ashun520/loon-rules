@@ -28,8 +28,6 @@ AND,((DOMAIN-SUFFIX,gridsumdissector.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,dcarapi.com),(PROTOCOL,QUIC)),REJECT
 
 [Rewrite]
-# ===== 开屏广告配置：返回空对象，App 会跳过广告直接进首页 =====
-^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/ad(\/|\?|$) reject-dict
 
 # ===== 首页信息流：去掉“广告”标签条目、节目卡与视频详情卡 =====
 ^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/stream_entrance\/get_feed(\/|\?|$) response-body-json-jq '. as $o | try (if (.data|type) == "array" then .data |= map(select((((.info // {}).label? // "") != "广告") and (((.info // {}).title_prefix? // "") != "节目") and ((((.info // {}) | has("video_detail_info"))) | not))) else . end) catch $o'
@@ -40,8 +38,9 @@ AND,((DOMAIN-SUFFIX,dcarapi.com),(PROTOCOL,QUIC)),REJECT
 # ===== 搜索页：清空顶部推广提醒 =====
 ^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/searchpage\/launcher\/main\/v1(\/|\?|$) response-body-json-jq '. as $o | try (if (.data|type) == "object" then .data.more_remind = {} else . end) catch $o'
 
-# ===== 右下角悬浮直播挂件 =====
-^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/dlive\/api\/get_feed_widget(\/|\?|$) reject-dict
+[Script]
+# 开屏配置 / 悬浮挂件：返回结构合法的空数据，避免 reject 导致 App 回退或解析异常
+http-response ^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/(ad|dlive\/api\/get_feed_widget)(\/|\?|$) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Dongchedi/dongchedi_cleaner.js?v=20261113, max-size=10485760, timeout=30, tag=懂车帝广告清洗
 
 [MITM]
 hostname = *.dcarapi.com
