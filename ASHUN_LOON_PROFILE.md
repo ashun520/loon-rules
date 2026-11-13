@@ -26,7 +26,11 @@
    （通过 `https://itunes.apple.com/search?term=<App名>&country=cn&entity=software` 取 `artworkUrl512`），
    不要用来源不明的第三方图标（容易 404）。
 6. 参考实现：`Feizhu/feizhu_splash_cleaner.js`（空结构清洗）、`Momo/momo_cleaner.js`（深度清洗）。
-7. MITM 只加必要域名；脚本只做本地 JSON 处理，**不得发起任何外发网络请求**、不得上传用户数据。
+7. **配置类接口严禁写死文件名/哈希**：如 `dorangesource.alicdn.com/ns531d19b....json`。
+   服务端换哈希后重写会静默失效，表现为「偶发开屏广告」（10 次出 2 次）。
+   正确做法：正则匹配整域 `^https?://dorangesource\.alicdn\.com/[^\s]*$`，
+   在 jq 里按内容特征判断（`.content | type == "object"`），删除所有 `test("splash";"i")` 的键。
+8. MITM 只加必要域名；脚本只做本地 JSON 处理，**不得发起任何外发网络请求**、不得上传用户数据。
 
 ## Loon 策略组与规则顺序（固定，不要改）
 
