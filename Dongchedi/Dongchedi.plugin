@@ -2,7 +2,7 @@
 #!desc = 懂车帝去广告：拦截开屏广告配置与广告素材域、清理首页/文章/搜索信息流广告；不拦截内容视频域，需开启 MITM 并信任 Loon 证书。
 #!author = ashun520（规则参考 xiaomaoJT/QxScript 公开配置）
 #!homepage = https://github.com/ashun520/loon-rules
-#!icon = https://raw.githubusercontent.com/Thelongdarkorg/loon-plugins/main/icons/dongchedi.jpg
+#!icon = https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/5e/71/f0/5e71f0e9-90d3-5479-9ce4-ed3b417b289c/DCDAppIcon-0-0-1x_U007epad-0-1-0-85-220.png/512x512bb.jpg
 #!loon_version = 3.5.1
 #!tag = 去广告,懂车帝
 #!system = iOS,iPadOS

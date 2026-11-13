@@ -2,6 +2,7 @@
 #!desc = 陌陌 iOS 去广告：拦截陌陌自有广告域，并通过 MITM 清洗启动/信息流/推荐/搜索/附近/动态接口中的广告卡片与广告字段。首次安装后请杀掉 App 重开；开屏广告有本地缓存，需等缓存过期或清除 App 缓存后再验证。
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
+#!icon = https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/23/ce/08/23ce08ba-6c13-a024-0cba-41c16e380c92/AppIcon-0-0-1x_U007emarketing-0-4-0-85-220.png/512x512bb.jpg
 #!system = iOS,iPadOS
 #!loon_version = 3.5.1
 #!tag = 去广告,陌陌
