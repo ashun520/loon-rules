@@ -63,8 +63,9 @@
 | 闲鱼 | `Xianyu/Xianyu.plugin` | 内联 jq | mtop.taobao.com |
 | 懂车帝 | `Dongchedi/Dongchedi.plugin` | 内联 jq | dcarapi.com |
 | 陌陌 | `Momo/Momo.plugin` | `Momo/momo_cleaner.js` | api.immomo.com |
+| 飞猪（强效） | `Feizhu/Feizhu.plugin` | 内联 jq + `Feizhu/fliggy_strip_zstd.js` | acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com |
 
-## Apple AI 分流域名（Ai.list 第一部分，App Store 域名已剥离到 AppStore.list）
+## Apple AI 分流域名（Ai.list 第一部分；App Store 域名不单独建规则集，交给 Apple.list 直连）
 ```
 DOMAIN-SUFFIX,apple-relay.apple.com,Ai
 DOMAIN-SUFFIX,apple-relay.cloudflare.com,Ai
