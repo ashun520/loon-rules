@@ -1,12 +1,10 @@
 /**
- * 飞猪开屏广告清洗（容错增强版）
+ * 飞猪广告清洗（命名空间级兜底版 v2）
  *
- * 关键改动：即使响应体无法解析（zstd 压缩、结构变更、空响应），
- * 也不再原样放行，而是返回结构合法的空开屏数据。
- * 这样即使飞猪更换接口返回格式或启用新压缩算法，也不会漏掉开屏广告。
- *
- * 覆盖接口：acs.m.taobao.com / guide-acs.m.taobao.com 下
- *          mtop.fliggy.crm.(screen|splash|ad|advert).*
+ * 设计目标：接口路径/字段改名后仍然生效。
+ *  1. 不再只认 mtop.fliggy.crm.screen.* 这种精确名字，改为「只要落在 mtop.fliggy 的营销命名空间」就清洗
+ *  2. 响应无法解析（zstd、结构变更、空包）时，开屏类接口直接返回结构合法的空数据
+ *  3. 解析成功时做深度清洗：删除一切开屏/广告语义字段，并清空广告条目
  *
  * 本脚本只做本地 JSON 处理，不发起任何网络请求。
  */
@@ -17,12 +15,18 @@
 
   var m = url.match(/mtop\.fliggy\.[A-Za-z0-9_.]+/);
   var api = m ? m[0] : "";
+  var tail = url.replace(/^https?:\/\/[^/]+/, "");
 
   function isObj(v) {
     return v !== null && typeof v === "object";
   }
 
-  // 兜底：结构合法的空开屏数据（协议字段齐全，App 不会判定接口失败）
+  // 开屏语义：接口名或 URL 里出现这些词就按开屏处理
+  var SPLASH_HINT = /(splash|screen|brand|allresource|predict|startup|launch|advert|opening)/i;
+  var isSplash = SPLASH_HINT.test(api) || SPLASH_HINT.test(tail);
+  // 营销命名空间：crm 下的接口基本都是营销投放相关
+  var isMarketing = /(^|\.)crm\./i.test(api);
+
   function emptySplash() {
     return JSON.stringify({
       api: api,
@@ -36,16 +40,13 @@
     });
   }
 
-  // 非开屏营销接口：原样放行，仅记录疑似广告请求方便排查
-  if (!/crm\.(screen|splash|ad|advert)|crm\.[a-z]*splash/i.test(api)) {
-    if (/splash|advert|screen|poplayer/i.test(url)) {
-      console.log("飞猪开屏: 疑似广告接口（未清洗）| " + url);
-    }
+  // 与广告无关的接口：直接放行
+  if (!isSplash && !isMarketing) {
     $done({});
     return;
   }
 
-  // 开屏熔断：强制标记需要关闭（即使响应体不可解析也能生效）
+  // 开屏熔断：强制关闭
   if (api.indexOf("emergencyshutdown") >= 0) {
     var shut = {
       api: api,
@@ -56,21 +57,21 @@
     if (body) {
       try {
         var so = JSON.parse(body);
-        if (isObj(so.data)) {
+        if (isObj(so) && isObj(so.data)) {
           if (isObj(so.data.data)) so.data.data.needShutDown = true;
           so.data.success = true;
           shut = so;
         }
       } catch (e) {}
     }
-    console.log("飞猪开屏: 熔断已开启");
+    console.log("飞猪: 开屏熔断已开启");
     $done({ body: JSON.stringify(shut) });
     return;
   }
 
-  // 老开屏资源 / 开屏预测：直接返回空结构，不依赖响应体
+  // 开屏资源 / 开屏预测：不依赖响应体，直接空结构
   if (api.indexOf("allresource") >= 0 || api.indexOf("predict") >= 0) {
-    console.log("飞猪开屏: " + api + " 返回空结构");
+    console.log("飞猪: " + api + " 返回空结构");
     $done({ body: emptySplash() });
     return;
   }
@@ -79,21 +80,22 @@
   try {
     obj = JSON.parse(body);
   } catch (e) {
-    console.log("飞猪开屏: 响应无法解析（可能 zstd/结构变更），返回空结构 | " + api);
-    $done({ body: emptySplash() });
+    if (isSplash) {
+      console.log("飞猪: " + api + " 响应不可解析，返回空结构");
+      $done({ body: emptySplash() });
+    } else {
+      $done({});
+    }
     return;
   }
 
   if (!isObj(obj)) {
-    console.log("飞猪开屏: 响应非对象，返回空结构 | " + api);
-    $done({ body: emptySplash() });
+    $done({});
     return;
   }
 
-  // 深度清洗开屏字段：
-  // 列表/策略类清成空数组，对象类清成空对象，标量清成 null，
-  // 既让 App 认为「没有广告」，又不会因字段缺失导致解析异常。
-  var AD_KEY = /^(seat|strategyMessages|strategy_messages|splash|splashAd|splash_ad|splashad|splashInfo|splash_info|splashList|splash_list|brand|brandAd|brand_ad|brandad|brandInfo|brand_info|ad|ads|adList|ad_list|adInfo|ad_info|adData|ad_data|adItem|ad_item|adCard|ad_card|promotion|promotions|promo|promoInfo|promo_info|poplayer|popLayer|popLayers|poplayers|startupAd|startup_ad|launchAd|launch_ad|openAd|open_ad|openingAd|opening_ad|advert|advertise|advertisement)$/i;
+  // 广告语义字段：命中就把容器清空（数组→[]，对象→{}，标量→null）
+  var AD_KEY = /^(seat|seats|strategyMessages|strategy_messages|splash|splashAd|splash_ad|splashad|splashInfo|splash_info|splashList|splash_list|splashConfig|splash_config|screen|screenAd|screen_ad|brand|brandAd|brand_ad|brandad|brandInfo|brand_info|ad|ads|adList|ad_list|adInfo|ad_info|adData|ad_data|adItem|ad_item|adCard|ad_card|adRule|ad_rules|adSwitch|ad_switch|adType|ad_type|promotion|promotions|promo|promoInfo|promo_info|poplayer|popLayer|popLayers|poplayers|startupAd|startup_ad|launchAd|launch_ad|openAd|open_ad|openingAd|opening_ad|advert|advertise|advertisement|materialList|material_list)$/i;
 
   var removed = 0;
 
@@ -131,6 +133,6 @@
   }
 
   var result = clean(obj);
-  console.log("飞猪开屏: " + (api || url) + " 清理字段 " + removed + " 个");
+  console.log("飞猪: " + (api || url) + " 清理字段 " + removed + " 个");
   $done({ body: JSON.stringify(result) });
 })();

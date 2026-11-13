@@ -1,4 +1,4 @@
-#!name = 懂车帝去广告 v5
+#!name = 懂车帝去广告 v6
 #!desc = 懂车帝去广告：拦截开屏广告配置与广告素材域、清理首页/文章/搜索信息流广告；不拦截内容视频域，需开启 MITM 并信任 Loon 证书。
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
@@ -30,6 +30,12 @@ AND,((DOMAIN-SUFFIX,dcarapi.com),(PROTOCOL,QUIC)),REJECT
 # 字节数据埋点/上报域：必须在 TLS 前 REJECT（不会被 MITM 解密，WebView 不会弹证书告警）
 DOMAIN-SUFFIX,datasail-cn-beijing.dcarapi.com,REJECT
 
+# 第三方广告 SDK（穿山甲）：开屏若改由 SDK 投放，配置接口在自家域、素材与投放走这里
+DOMAIN-SUFFIX,pangle.io,REJECT
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT
+AND,((DOMAIN-SUFFIX,pangle.io),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,pangolin-sdk-toutiao.com),(PROTOCOL,QUIC)),REJECT
+
 [Rewrite]
 
 # ===== 首页信息流：去掉“广告”标签条目、节目卡与视频详情卡 =====
@@ -43,7 +49,7 @@ DOMAIN-SUFFIX,datasail-cn-beijing.dcarapi.com,REJECT
 
 [Script]
 # 开屏配置 / 悬浮挂件：返回结构合法的空数据，避免 reject 导致 App 回退或解析异常
-http-response ^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/(ad|dlive\/api\/get_feed_widget)(\/|\?|$) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Dongchedi/dongchedi_cleaner.js?v=20261113, max-size=10485760, timeout=30, tag=懂车帝广告清洗
+http-response ^https?:\/\/api\.dcarapi\.com\/motor\/(?:.*\/)?(?:ad|ads|advert|advertise|splash|splashad|screen|screens|startup|launch|brand|opening|get_feed_widget|get_splash)(\/|\?|$) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Dongchedi/dongchedi_cleaner.js?v=20261114, max-size=10485760, timeout=30, tag=懂车帝广告清洗
 
 [MITM]
 # 只解密 API 主机。懂车帝「发现」等页面是 WebView(H5)，同样在 *.dcarapi.com 子域；
