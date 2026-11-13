@@ -31,13 +31,15 @@
    正确做法：正则匹配整域 `^https?://dorangesource\.alicdn\.com/[^\s]*$`，
    在 jq 里按内容特征判断（`.content | type == "object"`），删除所有 `test("splash";"i")` 的键。
 8. MITM 只加必要域名；脚本只做本地 JSON 处理，**不得发起任何外发网络请求**、不得上传用户数据。
-9. **MITM 通配域必须配合 REJECT 埋点域**：通配（如 `*.xxx.com`）会把埋点域一并解密，
-   App 内 WebView/自定义内核不信任 Loon CA → 弹「当前网页证书不可信」。
-   - 先确认重写接口是否分布在多个子域：懂车帝开屏/信息流就在多个 `*.dcarapi.com` 子域，
-     **收窄成 `api.dcarapi.com` 会导致开屏广告回归**
-   - 必须通配时：把埋点域（如 `datasail-cn-beijing.dcarapi.com`）用 `DOMAIN-SUFFIX,...,REJECT` 拦掉。
-     REJECT 在 TLS 握手前生效，不解密、不弹证书告警，同时保留通配重写能力
-   - 只有接口确定集中在单一主机时，才收窄 MITM
+9. **MITM 只写精确主机，禁止通配**：App 内 WebView/自定义内核不信任 Loon CA，
+   通配解密会把 H5 页面一起拦死。
+   - 懂车帝实测（2026-11-13）：`*.dcarapi.com` 通配 → 「发现」页白屏 + 弹「当前网页证书不可信」；
+     改成 `api.dcarapi.com` 后页面正常、弹窗消失，**开屏广告和弹窗同时解决**（v5 已验证）
+   - 埋点域（如 `datasail-cn-beijing.dcarapi.com`）用 `DOMAIN-SUFFIX,...,REJECT` 在 TLS 前拦掉
+   - 结论：页面域名和接口域名混在同一后缀体系时，**只 MITM 接口所在的精确主机**
+10. **插件分发必须用固定 commit 链接**：`raw.githubusercontent.com/ashun520/loon-rules/<40位commit>/<路径>`。
+    raw CDN 会缓存旧内容，`?v=` 查询串也不可靠——实测用户反复「白屏+弹窗」就是因为拿到旧版插件。
+    每次改完给出当前 commit 的固定链接，并让用户以 `#!name` 里的版本号确认是否真的更新成功。
 
 ## Loon 策略组与规则顺序（固定，不要改）
 
