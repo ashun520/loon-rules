@@ -15,6 +15,9 @@ DOMAIN-SUFFIX,ad.fliggy.com,REJECT
 DOMAIN-SUFFIX,amdc.m.taobao.com,REJECT
 # 飞猪用户行为监测（广告归因用，可选；若影响登录/风控请注释本行）
 DOMAIN-SUFFIX,adashx.ut.fliggy.com,REJECT
+# 广告监测/归因域（实测冷启动时请求：ad-track、h-adashx）
+DOMAIN-SUFFIX,ad-track.fliggy.com,REJECT
+DOMAIN-SUFFIX,h-adashx.ut.fliggy.com,REJECT
 # 阿里系广告联盟/广告素材域（3AD SDK、阿里妈妈、Tanx、广告监测）
 DOMAIN-SUFFIX,tanx.com,REJECT
 DOMAIN-SUFFIX,alimama.com,REJECT
