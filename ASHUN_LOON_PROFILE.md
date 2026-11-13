@@ -102,6 +102,7 @@
 | 懂车帝 | `Dongchedi/Dongchedi.plugin` | 内联 jq | api.dcarapi.com（禁止通配） |
 | 陌陌 | `Momo/Momo.plugin` | `Momo/momo_cleaner.js` | api.immomo.com |
 | 飞猪（强效） | `Feizhu/Feizhu.plugin` | `Feizhu/feizhu_splash_cleaner.js` + `Feizhu/fliggy_strip_zstd.js` | acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com |
+| TRAE 每日签到 | `Trae/Trae.plugin` | `Trae/trae_token_capture.js` + `Trae/trae_checkin.js` | api.trae.cn |
 
 ### 插件订阅地址（main 分支，日常只点「更新」）
 ```
@@ -110,6 +111,7 @@
 陌陌   https://raw.githubusercontent.com/ashun520/loon-rules/main/Momo/Momo.plugin
 飞猪   https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/Feizhu.plugin
 优酷   https://raw.githubusercontent.com/ashun520/loon-rules/main/Youku/Youku.plugin
+TRAE   https://raw.githubusercontent.com/ashun520/loon-rules/main/Trae/Trae.plugin
 ```
 
 ## Apple AI 分流域名（Ai.list 第一部分；App Store 域名不单独建规则集，交给 Apple.list 直连）
