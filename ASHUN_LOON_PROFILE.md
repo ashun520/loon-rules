@@ -37,9 +37,14 @@
      改成 `api.dcarapi.com` 后页面正常、弹窗消失，**开屏广告和弹窗同时解决**（v5 已验证）
    - 埋点域（如 `datasail-cn-beijing.dcarapi.com`）用 `DOMAIN-SUFFIX,...,REJECT` 在 TLS 前拦掉
    - 结论：页面域名和接口域名混在同一后缀体系时，**只 MITM 接口所在的精确主机**
-10. **插件分发必须用固定 commit 链接**：`raw.githubusercontent.com/ashun520/loon-rules/<40位commit>/<路径>`。
-    raw CDN 会缓存旧内容，`?v=` 查询串也不可靠——实测用户反复「白屏+弹窗」就是因为拿到旧版插件。
-    每次改完给出当前 commit 的固定链接，并让用户以 `#!name` 里的版本号确认是否真的更新成功。
+10. **插件分发规范（用户日常只点「更新」，不重加）**：
+    - 插件地址一律用 main 分支链接：`https://raw.githubusercontent.com/ashun520/loon-rules/main/<路径>`
+    - 每次改动插件，**同时把 `#!name` 里的版本号 +1**（如 `懂车帝去广告 v5` → `v6`），
+      用户看插件列表的名字即可确认是否更新成功
+    - 用户操作永远是：Loon → 配置 → 插件 → 点「更新」。**不要让用户删掉重加**
+    - 固定 commit 链接只用于排查 CDN 缓存顽固（raw 约 5 分钟缓存），不能作为长期地址，
+      否则点「更新」永远拿到同一个旧版本（2026-11-13 用户反复「白屏+弹窗」就是踩了这个坑）
+    - 换手机/刷机后：只需重新添加一次 main 链接，之后同样只点「更新」
 
 ## Loon 策略组与规则顺序（固定，不要改）
 
@@ -94,9 +99,18 @@
 |---|---|---|---|
 | Apple AI 分流 | `AppleAI.list` | 无 | 无 |
 | 闲鱼 | `Xianyu/Xianyu.plugin` | 内联 jq | mtop.taobao.com |
-| 懂车帝 | `Dongchedi/Dongchedi.plugin` | 内联 jq | dcarapi.com |
+| 懂车帝 | `Dongchedi/Dongchedi.plugin` | 内联 jq | api.dcarapi.com（禁止通配） |
 | 陌陌 | `Momo/Momo.plugin` | `Momo/momo_cleaner.js` | api.immomo.com |
 | 飞猪（强效） | `Feizhu/Feizhu.plugin` | `Feizhu/feizhu_splash_cleaner.js` + `Feizhu/fliggy_strip_zstd.js` | acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com |
+
+### 插件订阅地址（main 分支，日常只点「更新」）
+```
+闲鱼   https://raw.githubusercontent.com/ashun520/loon-rules/main/Xianyu/Xianyu.plugin
+懂车帝 https://raw.githubusercontent.com/ashun520/loon-rules/main/Dongchedi/Dongchedi.plugin
+陌陌   https://raw.githubusercontent.com/ashun520/loon-rules/main/Momo/Momo.plugin
+飞猪   https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/Feizhu.plugin
+优酷   https://raw.githubusercontent.com/ashun520/loon-rules/main/Youku/Youku.plugin
+```
 
 ## Apple AI 分流域名（Ai.list 第一部分；App Store 域名不单独建规则集，交给 Apple.list 直连）
 ```
