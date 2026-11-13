@@ -31,9 +31,13 @@
    正确做法：正则匹配整域 `^https?://dorangesource\.alicdn\.com/[^\s]*$`，
    在 jq 里按内容特征判断（`.content | type == "object"`），删除所有 `test("splash";"i")` 的键。
 8. MITM 只加必要域名；脚本只做本地 JSON 处理，**不得发起任何外发网络请求**、不得上传用户数据。
-9. **MITM 不要写通配域**（如 `*.xxx.com`）：会把埋点域一并解密，App 内 WebView/自定义内核不信任 Loon CA，
-   会弹「当前网页证书不可信」。只写真正需要重写的主机，如 `api.dcarapi.com`。
-   埋点域（`datasail-*.dcarapi.com` 等）与去广告无关，直接 `REJECT` 即可。
+9. **MITM 通配域必须配合 REJECT 埋点域**：通配（如 `*.xxx.com`）会把埋点域一并解密，
+   App 内 WebView/自定义内核不信任 Loon CA → 弹「当前网页证书不可信」。
+   - 先确认重写接口是否分布在多个子域：懂车帝开屏/信息流就在多个 `*.dcarapi.com` 子域，
+     **收窄成 `api.dcarapi.com` 会导致开屏广告回归**
+   - 必须通配时：把埋点域（如 `datasail-cn-beijing.dcarapi.com`）用 `DOMAIN-SUFFIX,...,REJECT` 拦掉。
+     REJECT 在 TLS 握手前生效，不解密、不弹证书告警，同时保留通配重写能力
+   - 只有接口确定集中在单一主机时，才收窄 MITM
 
 ## Loon 策略组与规则顺序（固定，不要改）
 
