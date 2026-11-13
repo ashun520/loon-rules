@@ -27,6 +27,9 @@ AND,((DOMAIN-SUFFIX,gridsumdissector.com),(PROTOCOL,QUIC)),REJECT
 # 强制 API 走 TCP，否则 HTTP/3 流量无法被 MITM 重写
 AND,((DOMAIN-SUFFIX,dcarapi.com),(PROTOCOL,QUIC)),REJECT
 
+# 字节数据埋点/上报域（与去广告无关），直接拦截，并排除出 MITM 以避免 WebView 证书告警
+DOMAIN-SUFFIX,datasail-cn-beijing.dcarapi.com,REJECT
+
 [Rewrite]
 
 # ===== 首页信息流：去掉“广告”标签条目、节目卡与视频详情卡 =====
@@ -43,7 +46,8 @@ AND,((DOMAIN-SUFFIX,dcarapi.com),(PROTOCOL,QUIC)),REJECT
 http-response ^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/(ad|dlive\/api\/get_feed_widget)(\/|\?|$) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Dongchedi/dongchedi_cleaner.js?v=20261113, max-size=10485760, timeout=30, tag=懂车帝广告清洗
 
 [MITM]
-hostname = *.dcarapi.com
+# 只解密真正的 API 主机；不要用 *.dcarapi.com，否则 datasail 埋点等 WebView 请求会被解密并弹证书告警
+hostname = api.dcarapi.com
 
 # 规则依据：参考 xiaomaoJT/QxScript 公开的懂车帝规则并做保守化处理。
 # 只重写已验证的广告配置与信息流接口，不拦截 dcarapi 普通内容接口，避免首页/详情页空白。
