@@ -8,6 +8,26 @@
 - 分支: main
 - 所有插件/规则/脚本 push 到此仓库
 
+## 去广告方法论（强制，所有新插件必须按此执行）
+> 2026-11-13 飞猪实测验证：这套方法去开屏广告最有效，用户明确要求以后所有去广告插件都用它。
+
+1. **独立广告域**（`ad.*`、`openad.*`、`amdc.*` 等只承载广告的域名）→ 用 `DOMAIN-SUFFIX,...,REJECT` 直接拦。
+2. **业务接口里的广告配置**（MTOP/JSON 配置接口）→ **禁止直接 REJECT**。
+   REJECT 会让 App 判定接口失败并回退到备用广告源，这就是「接口拦了但开屏广告还在」的根因。
+   正确做法：用 `http-response` 脚本返回**结构合法的空数据**，并从响应体**深度清空广告字段**。
+3. 脚本清洗原则：
+   - 非 JSON / 解析失败 → `$done({})` 原样放行，绝不白屏
+   - 开屏列表类字段（`seat`、`strategyMessages`、`adList`）→ 置空数组
+   - 开屏对象类字段（`splash`、`brandAd`、`adInfo`、`promotion`）→ 置空对象
+   - 保留 `api` / `ret` / `v` 等协议字段，返回 `SUCCESS::调用成功`
+   - 熔断类接口 → 强制 `needShutDown = true`
+4. 请求头处理：开屏接口先去掉 `Accept-Encoding` 里的 `zstd`，否则脚本拿不到可解析的 JSON。
+5. **每个插件必须带 `#!icon`**，图标用 App Store 官方应用图标
+   （通过 `https://itunes.apple.com/search?term=<App名>&country=cn&entity=software` 取 `artworkUrl512`），
+   不要用来源不明的第三方图标（容易 404）。
+6. 参考实现：`Feizhu/feizhu_splash_cleaner.js`（空结构清洗）、`Momo/momo_cleaner.js`（深度清洗）。
+7. MITM 只加必要域名；脚本只做本地 JSON 处理，**不得发起任何外发网络请求**、不得上传用户数据。
+
 ## Loon 策略组与规则顺序（固定，不要改）
 
 ### 策略组名
