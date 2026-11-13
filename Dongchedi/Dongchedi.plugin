@@ -46,9 +46,9 @@ DOMAIN-SUFFIX,datasail-cn-beijing.dcarapi.com,REJECT
 http-response ^https?:\/\/[a-zA-Z0-9.-]*dcarapi\.com\/motor\/(ad|dlive\/api\/get_feed_widget)(\/|\?|$) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Dongchedi/dongchedi_cleaner.js?v=20261113, max-size=10485760, timeout=30, tag=懂车帝广告清洗
 
 [MITM]
-# 开屏配置/信息流接口分布在多个 dcarapi 子域，必须通配才能全部重写；
-# 会弹证书告警的埋点域已在 [Rule] 里用 REJECT 在 TLS 前拦掉，不会被解密。
-hostname = *.dcarapi.com
+# 只解密 API 主机。懂车帝「发现」等页面是 WebView(H5)，同样在 *.dcarapi.com 子域；
+# 通配解密会让 WebView 证书校验失败（页面白屏/加载失败），所以不能通配。
+hostname = api.dcarapi.com
 
 # 规则依据：参考 xiaomaoJT/QxScript 公开的懂车帝规则并做保守化处理。
 # 只重写已验证的广告配置与信息流接口，不拦截 dcarapi 普通内容接口，避免首页/详情页空白。
