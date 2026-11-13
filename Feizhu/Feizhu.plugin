@@ -15,10 +15,17 @@ DOMAIN-SUFFIX,ad.fliggy.com,REJECT
 DOMAIN-SUFFIX,amdc.m.taobao.com,REJECT
 # 飞猪用户行为监测（广告归因用，可选；若影响登录/风控请注释本行）
 DOMAIN-SUFFIX,adashx.ut.fliggy.com,REJECT
+# 阿里系广告联盟/广告素材域（3AD SDK、阿里妈妈、Tanx、广告监测）
+DOMAIN-SUFFIX,tanx.com,REJECT
+DOMAIN-SUFFIX,alimama.com,REJECT
+DOMAIN-SUFFIX,mobaders.com,REJECT
+DOMAIN-SUFFIX,mmstat.com,REJECT
 
 # QUIC 定向阻断：保证 HTTPS 流量能被 MITM 重写
 AND,((DOMAIN-SUFFIX,ad.fliggy.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,amdc.m.taobao.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,tanx.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,alimama.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,acs.m.taobao.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,guide-acs.m.taobao.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,market.m.taobao.com),(PROTOCOL,QUIC)),REJECT
