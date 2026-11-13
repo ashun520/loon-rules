@@ -42,14 +42,11 @@ http-response ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.c
 http-request ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.(?:screen|splash|ad|advert)\.[^\s]*$ requires-header=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_strip_zstd.js?v=20261114, timeout=10, tag=飞猪开屏请求头处理
 
 # ===== 临时诊断：记录 outfliggys 网关完整 URL（定位到开屏页后删除本段与 MITM 对应域名）=====
-http-request ^https?:\/\/outfliggys\.m\.taobao\.com\/ requires-header=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_probe.js?v=20261113, timeout=10, tag=飞猪网关探测
+http-request ^https?:\/\/outfliggys\.m\.taobao\.com\/.*$ requires-header=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_probe.js?v=20261113, timeout=10, tag=飞猪网关探测
 
 [Rewrite]
-# ===== 3AD SDK 配置：关闭开屏/插屏/激励视频加载，清空开屏广告位 =====
-^https?:\/\/dorangesource\.alicdn\.com\/ns531d19b179f049979203776c80012c6c\.json(\?.*)?$ response-body-json-jq '. as $o | try (if .name == "fliggy_3ad_sdk" and .content then (.content."InterstitialAd.load_after_start_enable" = "false" | .content."RewardedAd.load_after_start_enable" = "false" | .content."SplashAd.load_after_start_enable" = "false" | .content."SplashAd.placement_id" = "" | .content."SplashAd.BETA.placement_id" = "" | .content."SplashAd.DEBUG.placement_id" = "" | .content."taku_ad_info_report_enable" = "false" | .content."taku_ad_log_report_enable" = "false") else . end) catch $o'
-
-# ===== 广告路由配置：关闭广告跳转开关 =====
-^https?:\/\/dorangesource\.alicdn\.com\/ns203192e076034180b9ac01232aafc6d2\.json(\?.*)?$ response-body-json-jq '. as $o | try (if .name == "fliggy_ad_config" and .content then .content.fliggy_ad_router_update_jump_url_switch = "0" else . end) catch $o'
+# ===== 3AD SDK / 广告路由配置：整域匹配（配置名与哈希会变，不能写死）=====
+^https?:\/\/dorangesource\.alicdn\.com\/[^\s]*$ response-body-json-jq '. as $o | try (if (.content? | type) == "object" then ((if ((.name? // "") | test("ad_config"; "i")) then .content.fliggy_ad_router_update_jump_url_switch = "0" else . end) | .content |= (del(.["SplashAd.placement_id"], .["SplashAd.BETA.placement_id"], .["SplashAd.DEBUG.placement_id"], .["SplashAd.load_after_start_enable"], .["SplashAd.enable"], .["InterstitialAd.load_after_start_enable"], .["RewardedAd.load_after_start_enable"]) | with_entries(select((.key | test("splash"; "i")) | not)))) else . end) catch $o'
 
 # ===== 弹层页链路：过滤 h5-crm-poplayer 弹层页面，保留其它 serverless 页面 =====
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.serverless\.api\.gateway\/2\.0(\?.*)?$ response-body-json-jq '. as $o | try (if .data.result.model.data.pages then (.data.result.model.data.pages |= map(select((.url // "") | contains("h5-crm-poplayer") | not))) else . end) catch $o'
