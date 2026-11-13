@@ -26,10 +26,10 @@ AND,((DOMAIN,dorangesource.alicdn.com),(PROTOCOL,QUIC)),REJECT
 
 [Script]
 # ===== 开屏广告：返回结构合法的空数据，避免 App 回退到备用广告源 =====
-http-response ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.(?:screen|splash)\.[^\s]*$ requires-body=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/feizhu_splash_cleaner.js?v=20261113, max-size=10485760, timeout=30, tag=飞猪开屏广告清洗
+http-response ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.(?:screen|splash|ad|advert)\.[^\s]*$ requires-body=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/feizhu_splash_cleaner.js?v=20261114, max-size=10485760, timeout=30, tag=飞猪开屏广告清洗
 
 # 开屏接口请求头去掉 zstd，否则响应体无法被脚本按 JSON 解析
-http-request ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.(?:screen|splash)\.[^\s]*$ requires-header=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_strip_zstd.js?v=20261113, timeout=10, tag=飞猪开屏请求头处理
+http-request ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.crm\.(?:screen|splash|ad|advert)\.[^\s]*$ requires-header=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_strip_zstd.js?v=20261114, timeout=10, tag=飞猪开屏请求头处理
 
 [Rewrite]
 # ===== 3AD SDK 配置：关闭开屏/插屏/激励视频加载，清空开屏广告位 =====
