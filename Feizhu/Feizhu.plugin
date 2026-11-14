@@ -1,4 +1,4 @@
-#!name = 飞猪去广告 v4
+#!name = 飞猪去广告 v5
 #!desc = 飞猪 iOS 强效去广告：清空开屏广告策略与素材、熔断开屏、关闭 3AD SDK 开屏/插屏/激励视频、关闭广告路由跳转、过滤 H5 弹层页与节日营销模块，并拦截自有广告/监测域。需开启 MITM over HTTP/2 并信任 Loon 证书。首次生效请杀掉 App 重开；开屏有本地缓存，需等缓存过期或清除 App 缓存后再验证。
 #!author = ashun520（规则参考 Zz1xuan/ONE、ElyDemiurge/Loon-Plugins）
 #!homepage = https://github.com/ashun520/loon-rules
@@ -58,6 +58,12 @@ http-response ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.(
 # 开屏接口请求头去掉 zstd，否则响应体无法被脚本按 JSON 解析
 http-request ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.(?:crm\.[^\s]*|(?:screen|splash|ad|advert|brand|allresource|predict|emergencyshutdown)[^\s]*)$ requires-header=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_strip_zstd.js?v=20261114b, timeout=10, tag=飞猪开屏请求头处理
 
+# ===== 开屏页熔断（2026-11-14 抓包实证）=====
+# 开屏容器 page://cache_splashScreen 会加载 outfliggys 的 pcraft 营销页（collect-energy-daily 等，
+# HTML 275–341KB，连带前端资源约 2MB），这是 v4 之后仍在重复出现的那条广告。
+# 脚本只在 Referer 来自开屏容器时返回空页，从首页正常打开活动页不受影响。
+http-request ^https?:\/\/outfliggys\.m\.taobao\.com\/xj\/page\/pcraft\/pcraft\/ script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/feizhu_splash_page_block.js?v=20261114, requires-body=0, timeout=10, tag=飞猪开屏页熔断
+
 # ===== 诊断脚本已停用（已定位开屏素材域 tbexpand.alicdn.com，无需再记录 outfliggys）=====
 
 [Rewrite]
@@ -74,7 +80,7 @@ http-request ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.(?
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.train\.homepage\/1\.0(\?.*)?$ response-body-json-jq '. as $o | try (if .data.holidayMarketingModule then del(.data.holidayMarketingModule) else . end) catch $o'
 
 [MITM]
-hostname = acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com, tbexpand.alicdn.com
+hostname = acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com, tbexpand.alicdn.com, outfliggys.m.taobao.com
 
 # 说明：
 # 1. acs.m.taobao.com / guide-acs.m.taobao.com 是阿里 MTOP 网关，淘宝/闲鱼也在用。
