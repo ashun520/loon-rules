@@ -103,6 +103,12 @@
 | 陌陌 | `Momo/Momo.plugin` | `Momo/momo_cleaner.js` | api.immomo.com |
 | 飞猪（强效） | `Feizhu/Feizhu.plugin` | `Feizhu/feizhu_splash_cleaner.js` + `Feizhu/fliggy_strip_zstd.js` | acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com |
 
+### 飞猪抓包结论（2026-11-14，用户 HAR 86 条请求）
+- 抓包里**没有**飞猪开屏配置接口（整包只有 `mtop.common.getTimestamp`）→ 开屏广告大概率来自本地缓存；复现验证要用 Loon 自带抓包（能看到 MITM 解密流量）
+- 广告监测 `amdc` 走**裸 IP + HTTP 80**（`http://59.82.x.x/amdc/mobileDispatch`），域名规则无效 → 用 `URL-REGEX,^http://.+?/amdc/,REJECT`
+- 广告配置可能走 HTTP/3，Loon 无法改写 → 飞猪自有域（fliggy.com / alibtrip.com / outfliggys / h5.wapa）全量 `PROTOCOL,QUIC` REJECT
+- `outfliggys.m.taobao.com/xj/page/pcraft/*` 是营销搭建页（含 `advertisementType:splash` 配置），是否拦截有副作用，需用户确认
+
 ### 插件订阅地址（main 分支，日常只点「更新」）
 ```
 闲鱼   https://raw.githubusercontent.com/ashun520/loon-rules/main/Xianyu/Xianyu.plugin
