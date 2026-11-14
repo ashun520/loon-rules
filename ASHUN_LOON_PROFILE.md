@@ -103,11 +103,13 @@
 | 陌陌 | `Momo/Momo.plugin` | `Momo/momo_cleaner.js` | api.immomo.com |
 | 飞猪（强效） | `Feizhu/Feizhu.plugin` | `Feizhu/feizhu_splash_cleaner.js` + `Feizhu/fliggy_strip_zstd.js` | acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com |
 
-### 飞猪抓包结论（2026-11-14，用户 HAR 86 条请求）
-- 抓包里**没有**飞猪开屏配置接口（整包只有 `mtop.common.getTimestamp`）→ 开屏广告大概率来自本地缓存；复现验证要用 Loon 自带抓包（能看到 MITM 解密流量）
-- 广告监测 `amdc` 走**裸 IP + HTTP 80**（`http://59.82.x.x/amdc/mobileDispatch`），域名规则无效 → 用 `URL-REGEX,^http://.+?/amdc/,REJECT`
-- 广告配置可能走 HTTP/3，Loon 无法改写 → 飞猪自有域（fliggy.com / alibtrip.com / outfliggys / h5.wapa）全量 `PROTOCOL,QUIC` REJECT
-- `outfliggys.m.taobao.com/xj/page/pcraft/*` 是营销搭建页（含 `advertisementType:splash` 配置），是否拦截有副作用，需用户确认
+### 飞猪抓包结论（2026-11-14，两份 HAR：86 / 98 条请求）
+- **开屏广告素材 = 视频**：冷启动时从 `https://tbexpand.alicdn.com/<id>/<hash>.mp4?...&p=cloudvideo...` 拉取（154KB，UA=飞猪旅行/10.0.11.104）→ 已拦 `URL-REGEX,^https?://tbexpand\.alicdn\.com/.*\.mp4,REJECT` + 该域 QUIC 阻断 + MITM
+- 抓包里**没有**开屏配置接口（整包只有 `mtop.common.getTimestamp`）→ 配置走本地缓存，素材才实时下载；所以只拦配置接口没用，必须拦素材
+- 广告监测 `amdc` 走**裸 IP + HTTP 80**（`http://59.82.x.x/amdc/mobileDispatch`）→ `URL-REGEX,^http://.+?/amdc/,REJECT`
+- 另有 `amdc-sibling.alipay.com.cn/query` 监测 → 域名 REJECT
+- `market.m.taobao.com/app/trip/h5-crm-poplayer/*` 在抓包里返回 **0 字节**，说明插件 rewrite 生效中
+- `outfliggys.m.taobao.com/xj/page/pcraft/*` 是营销搭建页（含 `advertisementType:splash` 配置），用户决定**暂不拦截**
 
 ### 插件订阅地址（main 分支，日常只点「更新」）
 ```
