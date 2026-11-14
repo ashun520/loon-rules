@@ -1,4 +1,4 @@
-#!name = 飞猪去广告 v3
+#!name = 飞猪去广告 v4
 #!desc = 飞猪 iOS 强效去广告：清空开屏广告策略与素材、熔断开屏、关闭 3AD SDK 开屏/插屏/激励视频、关闭广告路由跳转、过滤 H5 弹层页与节日营销模块，并拦截自有广告/监测域。需开启 MITM over HTTP/2 并信任 Loon 证书。首次生效请杀掉 App 重开；开屏有本地缓存，需等缓存过期或清除 App 缓存后再验证。
 #!author = ashun520（规则参考 Zz1xuan/ONE、ElyDemiurge/Loon-Plugins）
 #!homepage = https://github.com/ashun520/loon-rules
@@ -25,6 +25,12 @@ DOMAIN-SUFFIX,mobaders.com,REJECT
 DOMAIN-SUFFIX,mmstat.com,REJECT
 # 阿里 Tanx 广告素材 CDN
 DOMAIN-SUFFIX,atanx.alicdn.com,REJECT
+# 广告监测（抓包实证：amdc-sibling.alipay.com.cn/query）
+DOMAIN,amdc-sibling.alipay.com.cn,REJECT
+# 开屏广告视频素材（抓包实证：冷启动拉 tbexpand.alicdn.com/*.mp4，154KB，UA=飞猪App）
+# 只拦该域的 mp4，不动图片/其它 App 的素材
+URL-REGEX,^https?://tbexpand\.alicdn\.com/.*\.mp4,REJECT
+AND,((DOMAIN,tbexpand.alicdn.com),(PROTOCOL,QUIC)),REJECT
 
 # QUIC 定向阻断：保证 HTTPS 流量能被 MITM 重写
 AND,((DOMAIN-SUFFIX,ad.fliggy.com),(PROTOCOL,QUIC)),REJECT
@@ -52,8 +58,7 @@ http-response ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.(
 # 开屏接口请求头去掉 zstd，否则响应体无法被脚本按 JSON 解析
 http-request ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.(?:crm\.[^\s]*|(?:screen|splash|ad|advert|brand|allresource|predict|emergencyshutdown)[^\s]*)$ requires-header=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_strip_zstd.js?v=20261114b, timeout=10, tag=飞猪开屏请求头处理
 
-# ===== 临时诊断：记录 outfliggys 网关完整 URL（定位到开屏页后删除本段与 MITM 对应域名）=====
-http-request ^https?:\/\/outfliggys\.m\.taobao\.com\/.*$ requires-header=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_probe.js?v=20261113, timeout=10, tag=飞猪网关探测
+# ===== 诊断脚本已停用（已定位开屏素材域 tbexpand.alicdn.com，无需再记录 outfliggys）=====
 
 [Rewrite]
 # ===== 3AD SDK / 广告路由配置：整域匹配（配置名与哈希会变，不能写死）=====
@@ -69,7 +74,7 @@ http-request ^https?:\/\/outfliggys\.m\.taobao\.com\/.*$ requires-header=1, scri
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.train\.homepage\/1\.0(\?.*)?$ response-body-json-jq '. as $o | try (if .data.holidayMarketingModule then del(.data.holidayMarketingModule) else . end) catch $o'
 
 [MITM]
-hostname = acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com, outfliggys.m.taobao.com
+hostname = acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com, tbexpand.alicdn.com
 
 # 说明：
 # 1. acs.m.taobao.com / guide-acs.m.taobao.com 是阿里 MTOP 网关，淘宝/闲鱼也在用。
