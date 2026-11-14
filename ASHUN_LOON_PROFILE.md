@@ -108,8 +108,8 @@
 - 抓包里**没有**开屏配置接口（整包只有 `mtop.common.getTimestamp`）→ 配置走本地缓存，素材才实时下载；所以只拦配置接口没用，必须拦素材
 - 广告监测 `amdc` 走**裸 IP + HTTP 80**（`http://59.82.x.x/amdc/mobileDispatch`）→ `URL-REGEX,^http://.+?/amdc/,REJECT`
 - 另有 `amdc-sibling.alipay.com.cn/query` 监测 → 域名 REJECT
+- `outfliggys.m.taobao.com/xj/page/pcraft/pcraft/*`：**这才是 v4 后仍重复出现的开屏广告**——开屏容器 `page://cache_splashScreen` 加载的 H5 营销页（如 `collect-energy-daily`，HTML 275–341KB + 前端包约 2MB，每次冷启动重下）。v5 用脚本 `feizhu_splash_page_block.js` 按 Referer 熔断：仅开屏容器来的请求返回空页，首页正常进入不受影响
 - `market.m.taobao.com/app/trip/h5-crm-poplayer/*` 在抓包里返回 **0 字节**，说明插件 rewrite 生效中
-- `outfliggys.m.taobao.com/xj/page/pcraft/*` 是营销搭建页（含 `advertisementType:splash` 配置），用户决定**暂不拦截**
 
 ### 插件订阅地址（main 分支，日常只点「更新」）
 ```
