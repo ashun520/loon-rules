@@ -1,4 +1,4 @@
-#!name = 飞猪去广告 v2
+#!name = 飞猪去广告 v3
 #!desc = 飞猪 iOS 强效去广告：清空开屏广告策略与素材、熔断开屏、关闭 3AD SDK 开屏/插屏/激励视频、关闭广告路由跳转、过滤 H5 弹层页与节日营销模块，并拦截自有广告/监测域。需开启 MITM over HTTP/2 并信任 Loon 证书。首次生效请杀掉 App 重开；开屏有本地缓存，需等缓存过期或清除 App 缓存后再验证。
 #!author = ashun520（规则参考 Zz1xuan/ONE、ElyDemiurge/Loon-Plugins）
 #!homepage = https://github.com/ashun520/loon-rules
@@ -35,6 +35,15 @@ AND,((DOMAIN,acs.m.taobao.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,guide-acs.m.taobao.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,market.m.taobao.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,dorangesource.alicdn.com),(PROTOCOL,QUIC)),REJECT
+
+# ===== 抓包实证补充（2026-11-14 HAR）=====
+# 广告监测 amdc 不走域名，直连裸 IP 的 HTTP 80（如 http://59.82.34.147/amdc/mobileDispatch），域名规则无效
+URL-REGEX,^http://.+?/amdc/,REJECT
+# 飞猪自有域名全量禁用 QUIC：广告配置若走 HTTP/3，Loon 看不到也就改不了
+AND,((DOMAIN-SUFFIX,fliggy.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,alibtrip.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,outfliggys.m.taobao.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,h5.wapa.taobao.com),(PROTOCOL,QUIC)),REJECT
 
 [Script]
 # ===== 开屏广告：按命名空间兜底，接口改名也能命中；返回结构合法的空数据，避免 App 回退备用广告源 =====
