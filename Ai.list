@@ -11,6 +11,21 @@
 # ==================================================================
 # Apple 私有云计算中继（国行 iPhone + 国内 SIM 会解析到国内边缘节点，
 # 所以必须用域名级匹配强制走代理，不能靠 IP 归属地判断）
+#
+# ⚠️ PCC（Private Cloud Compute）高质量消除/生成式云端管线必需域名
+# 这些域名都是 apple.com / icloud.com 的子域，若不写在本文件（最顶）里，
+# 会被 Apple.list 的 DOMAIN-SUFFIX,apple.com,DIRECT / icloud.com,DIRECT 抢走直连，
+# 大陆出口 IP 会在毫秒内被 PCC 拒绝（PrivateCloudComputeError 32033），
+# 前端统一显示"消除此照片时出错。请稍后再试。"——快速消除是纯端侧 GAN，所以不受影响。
+DOMAIN,ss-cleanup-proxy-prod.us-east-1m.app.apple.com,Ai
+DOMAIN-SUFFIX,app.apple.com,Ai
+DOMAIN-SUFFIX,issuer.apple.com,Ai
+DOMAIN-SUFFIX,ropes.apple.com,Ai
+DOMAIN,mask-api.icloud.com,Ai
+DOMAIN,mask.icloud.com,Ai
+DOMAIN,mask-h2.icloud.com,Ai
+DOMAIN-SUFFIX,apple-relay.akamaized.net,Ai
+
 DOMAIN-SUFFIX,apple-relay.apple.com,Ai
 DOMAIN-SUFFIX,apple-relay.cloudflare.com,Ai
 DOMAIN-SUFFIX,apple-relay.fastly-edge.com,Ai
