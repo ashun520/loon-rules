@@ -157,9 +157,11 @@ DOMAIN,cdn.usefathom.com,Ai
 # ==================================================================
 # ⚠️ 第九部分：宽泛基础设施后缀 —— 谨慎，这些会把非 AI 流量也带代理
 # ==================================================================
-# 这些是原 Ai.list 里的宽后缀。如果加上后发现某些常规网站/APP打不开，
-# 就把这些注释掉（行首加 # ）或删掉，上面精确的 AI 域名规则已经够用了。
-DOMAIN-SUFFIX,cloudflare.com,Ai
-DOMAIN-SUFFIX,amazonaws.com,Ai
-DOMAIN-SUFFIX,azureedge.net,Ai
-DOMAIN-SUFFIX,livekit.cloud,Ai
+# 这些是原 Ai.list 里的宽后缀，会把大量非 AI 流量也带进 Ai 节点：
+# Cloudflare 人机验证反复出现、普通 App 加载变慢、节点故障时日常网站一起打不开。
+# 2026-11-15 起默认停用，上方精确 AI 域名（含 apple-relay.cloudflare.com、
+# OpenAI 的 azureedge.net 具体主机名）已覆盖需求，确有需要再取消注释。
+# DOMAIN-SUFFIX,cloudflare.com,Ai
+# DOMAIN-SUFFIX,amazonaws.com,Ai
+# DOMAIN-SUFFIX,azureedge.net,Ai
+# DOMAIN-SUFFIX,livekit.cloud,Ai
