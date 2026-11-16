@@ -29,19 +29,33 @@ DOMAIN-SUFFIX,apple-relay.akamaized.net,Ai
 DOMAIN-SUFFIX,apple-relay.apple.com,Ai
 DOMAIN-SUFFIX,apple-relay.cloudflare.com,Ai
 DOMAIN-SUFFIX,apple-relay.fastly-edge.com,Ai
+DOMAIN,apple-relay.mask.apple-dns.net,Ai
+DOMAIN,apple-carry-relay.cloudflare.com,Ai
+DOMAIN,cp4.cloudflare.com,Ai
+DOMAIN,mask-api.fe2.apple-dns.net,Ai
 DOMAIN-SUFFIX,smp-device-content.apple.com,Ai
 DOMAIN-SUFFIX,xp.apple.com,Ai
 DOMAIN-SUFFIX,mesu.apple.com,Ai
 DOMAIN,guzzoni.apple.com,Ai
 DOMAIN-SUFFIX,smoot.apple.com,Ai
+DOMAIN,api-siri-prod.apple.com,Ai
+DOMAIN,seed.siri.apple.com,Ai
 DOMAIN,gs-loc-cn.apple.com,Ai
 DOMAIN,gspe1-ssl.ls.apple.com,Ai
 DOMAIN,setup.icloud.com,Ai
-# iCloud 通用网关不要走代理，保持落到 Apple.list → DIRECT：
-# - gateway.icloud.com            iCloud 账号/推送入口，走海外节点易导致账号状态异常
-# - p150-acsegateway.icloud.com   iCloud+ 专用代理(Private Relay)接入网关，国内用不到
-# 备份与照片同步走 pXX-content.icloud.com / icloud-content.com，本来就在 Apple.list 直连，
-# 与本规则集无关；mask*.icloud.com 属于 PCC 推理链路，保留在最顶部。
+# ---- 以下 4 条对照他人实测可用的高质量消除配置补充 ----
+# gateway/probe/metrics 属于 iCloud 账号准入与云端探针，缺任一条 PCC 会判定
+# 设备不在服务区域，返回同样的「消除此照片时出错」。若后续出现 iCloud 账号
+# 或推送异常，可只注释 gateway.icloud.com 这一行，其余保留。
+DOMAIN,gateway.icloud.com,Ai
+DOMAIN,probe.icloud.com,Ai
+DOMAIN,metrics.icloud.com,Ai
+DOMAIN,wps.apple.com,Ai
+# p150-acsegateway.icloud.com 不加入（iCloud+ 专用代理接入，国内用不到）。
+# 备份与照片同步走 pXX-content.icloud.com / icloud-content.com，
+# 在 Apple.list 中是直连，与本规则集无关。
+# 注意：cp4.cloudflare.com 是精确主机名，不要因此取消第九部分的
+# cloudflare.com 宽后缀，否则会把全网 Cloudflare 流量带进代理。
 # ⚠️ bag.itunes.apple.com 严禁加入本列表！
 # 它是 App Store 下载/登录的第一步配置 API（不是 AI 域名）。
 # 曾因误加导致走 SG-HY2 数据中心 IP，被苹果风控在第一步直接拒绝，
