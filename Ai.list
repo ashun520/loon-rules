@@ -4,7 +4,22 @@
 # 来源: 合并自原 Ai.list (多平台 AI) + AppleAI.list (苹果智能/OpenAI 核心)
 # 说明: 请把本规则集放在 Apple.list 之前。Apple.list 含 DOMAIN-SUFFIX,apple.com,DIRECT
 #       若排在前面，apple-relay.* 会先命中直连规则，导致苹果 AI 分流失效。
-# updated: 2026-11-10
+# updated: 2026-11-19
+# 参考: AppleFlow v1.0.1 (Kianuni/AppleFlow, Erosion-CN 同作者配套分流方案)
+
+# ==================================================================
+# 【第零部分】中文 Siri / 来电筛选 —— 必须直连，严禁代理
+# ==================================================================
+# 依据 AppleFlow v1.0.1：guzzoni / *.siri.apple.com 一旦走海外节点，
+# 或被 Fake-IP 解析成 198.18.x.x，中文普通话 Siri 会立刻报
+# 「我碰到了一点问题。请再试一次。」，普通话「询问来电原因」来电筛选也会失效。
+# 这几个域名走 Apple.list 的 apple.com 直连即可，速度最快、不耗代理流量。
+# 注意：gspe1-ssl.ls.apple.com（准入校验）仍然走代理，两者分工不同，别混。
+DOMAIN-SUFFIX,guzzoni.apple.com,DIRECT
+DOMAIN-SUFFIX,siri.apple.com,DIRECT
+DOMAIN,dejavu.apple.com,DIRECT
+DOMAIN,sequoia.apple.com,DIRECT
+DOMAIN-SUFFIX,smoot.apple.com,DIRECT
 
 # ==================================================================
 # 【第一部分】Apple Intelligence / Siri 的 ChatGPT 扩展 —— 必须在最顶
@@ -36,10 +51,6 @@ DOMAIN,mask-api.fe2.apple-dns.net,Ai
 DOMAIN-SUFFIX,smp-device-content.apple.com,Ai
 DOMAIN-SUFFIX,xp.apple.com,Ai
 DOMAIN-SUFFIX,mesu.apple.com,Ai
-DOMAIN,guzzoni.apple.com,Ai
-DOMAIN-SUFFIX,smoot.apple.com,Ai
-DOMAIN,api-siri-prod.apple.com,Ai
-DOMAIN,seed.siri.apple.com,Ai
 DOMAIN,gs-loc-cn.apple.com,Ai
 DOMAIN,gspe1-ssl.ls.apple.com,Ai
 DOMAIN,setup.icloud.com,Ai
@@ -62,7 +73,8 @@ DOMAIN,wps.apple.com,Ai
 # 后续 appleid 登录和 mzstatic 下载 CDN 规则根本没机会执行。
 # 正确做法：让它自动走到 Apple.list → DOMAIN-SUFFIX,apple.com,DIRECT
 # （国行 iPhone + 国内 SIM，苹果在国内有边缘节点，直连最快最稳）
-DOMAIN-KEYWORD,siri,Ai
+# 注：原 DOMAIN-KEYWORD,siri,Ai 已移除，改用顶部精确的 DIRECT 规则，
+#     避免 siriusxm.com 之类无关域名被误代理。
 
 # ==================================================================
 # 【第二部分】OpenAI / ChatGPT 全系（核心域名 + CDN + 存储）
@@ -76,6 +88,12 @@ DOMAIN,production-openaicom-storage.azureedge.net,Ai
 DOMAIN,openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net,Ai
 DOMAIN,openaicomproductionae4b.blob.core.windows.net,Ai
 DOMAIN-SUFFIX,chatgpt.livekit.cloud,Ai
+# ---- 对照 AppleFlow v1.0.1 补充 ----
+DOMAIN-SUFFIX,chat.com,Ai
+DOMAIN-SUFFIX,sora.com,Ai
+DOMAIN-SUFFIX,oaistatsig.com,Ai
+DOMAIN,openai.com.cdn.cloudflare.net,Ai
+DOMAIN,openai-api.arkoselabs.com,Ai
 
 # ==================================================================
 # 【第三部分】OpenAI 客户端依赖（功能开关 / 统计 SDK）
@@ -103,12 +121,17 @@ DOMAIN-SUFFIX,googleusercontent.com,Ai
 DOMAIN-SUFFIX,googleapis.com,Ai
 DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com,Ai
 DOMAIN-SUFFIX,grazie.ai,Ai
+# ---- 对照 AppleFlow v1.0.1 补充：视觉智能 / Gemini 静态资源 ----
+DOMAIN,lens.google.com,Ai
+DOMAIN,gemini.gstatic.com,Ai
+DOMAIN,aistudio.google.com,Ai
 
 # ==================================================================
 # 【第五部分】Anthropic / Claude
 # ==================================================================
 DOMAIN-SUFFIX,anthropic.com,Ai
 DOMAIN-SUFFIX,claude.ai,Ai
+DOMAIN-SUFFIX,claude.com,Ai
 DOMAIN-SUFFIX,claudeusercontent.com,Ai
 
 # ==================================================================
