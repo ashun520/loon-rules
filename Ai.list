@@ -1,83 +1,13 @@
 # NAME: Ai
-# 用途: 所有 AI 平台 + Apple Intelligence / Siri ChatGPT 扩展分流
+# 用途: 第三方 AI 平台（ChatGPT / Gemini / Claude / Copilot / Grok 等）
 # policy: Ai
-# 来源: 合并自原 Ai.list (多平台 AI) + AppleAI.list (苹果智能/OpenAI 核心)
-# 说明: 请把本规则集放在 Apple.list 之前。Apple.list 含 DOMAIN-SUFFIX,apple.com,DIRECT
-#       若排在前面，apple-relay.* 会先命中直连规则，导致苹果 AI 分流失效。
+# 说明: 苹果自家的 Apple Intelligence / Siri / PCC 已拆分到 AppleAI.list，
+#       本文件不再包含任何 apple.com / icloud.com 域名。
+#       仍需放在 Apple.list 之前（Apple.list 含 DOMAIN-SUFFIX,apple.com,DIRECT）。
 # updated: 2026-11-19
-# 参考: AppleFlow v1.0.1 (Kianuni/AppleFlow, Erosion-CN 同作者配套分流方案)
 
 # ==================================================================
-# 【第零部分】中文 Siri / 来电筛选 —— 必须直连，严禁代理
-# ==================================================================
-# 依据 AppleFlow v1.0.1：guzzoni / *.siri.apple.com 一旦走海外节点，
-# 或被 Fake-IP 解析成 198.18.x.x，中文普通话 Siri 会立刻报
-# 「我碰到了一点问题。请再试一次。」，普通话「询问来电原因」来电筛选也会失效。
-# 这几个域名走 Apple.list 的 apple.com 直连即可，速度最快、不耗代理流量。
-# 注意：gspe1-ssl.ls.apple.com（准入校验）仍然走代理，两者分工不同，别混。
-DOMAIN-SUFFIX,guzzoni.apple.com,DIRECT
-DOMAIN-SUFFIX,siri.apple.com,DIRECT
-DOMAIN,dejavu.apple.com,DIRECT
-DOMAIN,sequoia.apple.com,DIRECT
-DOMAIN-SUFFIX,smoot.apple.com,DIRECT
-
-# ==================================================================
-# 【第一部分】Apple Intelligence / Siri 的 ChatGPT 扩展 —— 必须在最顶
-# ==================================================================
-# Apple 私有云计算中继（国行 iPhone + 国内 SIM 会解析到国内边缘节点，
-# 所以必须用域名级匹配强制走代理，不能靠 IP 归属地判断）
-#
-# ⚠️ PCC（Private Cloud Compute）高质量消除/生成式云端管线必需域名
-# 这些域名都是 apple.com / icloud.com 的子域，若不写在本文件（最顶）里，
-# 会被 Apple.list 的 DOMAIN-SUFFIX,apple.com,DIRECT / icloud.com,DIRECT 抢走直连，
-# 大陆出口 IP 会在毫秒内被 PCC 拒绝（PrivateCloudComputeError 32033），
-# 前端统一显示"消除此照片时出错。请稍后再试。"——快速消除是纯端侧 GAN，所以不受影响。
-DOMAIN,ss-cleanup-proxy-prod.us-east-1m.app.apple.com,Ai
-DOMAIN-SUFFIX,app.apple.com,Ai
-DOMAIN-SUFFIX,issuer.apple.com,Ai
-DOMAIN-SUFFIX,ropes.apple.com,Ai
-DOMAIN,mask-api.icloud.com,Ai
-DOMAIN,mask.icloud.com,Ai
-DOMAIN,mask-h2.icloud.com,Ai
-DOMAIN-SUFFIX,apple-relay.akamaized.net,Ai
-
-DOMAIN-SUFFIX,apple-relay.apple.com,Ai
-DOMAIN-SUFFIX,apple-relay.cloudflare.com,Ai
-DOMAIN-SUFFIX,apple-relay.fastly-edge.com,Ai
-DOMAIN,apple-relay.mask.apple-dns.net,Ai
-DOMAIN,apple-carry-relay.cloudflare.com,Ai
-DOMAIN,cp4.cloudflare.com,Ai
-DOMAIN,mask-api.fe2.apple-dns.net,Ai
-DOMAIN-SUFFIX,smp-device-content.apple.com,Ai
-DOMAIN-SUFFIX,xp.apple.com,Ai
-DOMAIN-SUFFIX,mesu.apple.com,Ai
-DOMAIN,gs-loc-cn.apple.com,Ai
-DOMAIN,gspe1-ssl.ls.apple.com,Ai
-DOMAIN,setup.icloud.com,Ai
-# ---- 以下 4 条对照他人实测可用的高质量消除配置补充 ----
-# gateway/probe/metrics 属于 iCloud 账号准入与云端探针，缺任一条 PCC 会判定
-# 设备不在服务区域，返回同样的「消除此照片时出错」。若后续出现 iCloud 账号
-# 或推送异常，可只注释 gateway.icloud.com 这一行，其余保留。
-DOMAIN,gateway.icloud.com,Ai
-DOMAIN,probe.icloud.com,Ai
-DOMAIN,metrics.icloud.com,Ai
-DOMAIN,wps.apple.com,Ai
-# p150-acsegateway.icloud.com 不加入（iCloud+ 专用代理接入，国内用不到）。
-# 备份与照片同步走 pXX-content.icloud.com / icloud-content.com，
-# 在 Apple.list 中是直连，与本规则集无关。
-# 注意：cp4.cloudflare.com 是精确主机名，不要因此取消第九部分的
-# cloudflare.com 宽后缀，否则会把全网 Cloudflare 流量带进代理。
-# ⚠️ bag.itunes.apple.com 严禁加入本列表！
-# 它是 App Store 下载/登录的第一步配置 API（不是 AI 域名）。
-# 曾因误加导致走 SG-HY2 数据中心 IP，被苹果风控在第一步直接拒绝，
-# 后续 appleid 登录和 mzstatic 下载 CDN 规则根本没机会执行。
-# 正确做法：让它自动走到 Apple.list → DOMAIN-SUFFIX,apple.com,DIRECT
-# （国行 iPhone + 国内 SIM，苹果在国内有边缘节点，直连最快最稳）
-# 注：原 DOMAIN-KEYWORD,siri,Ai 已移除，改用顶部精确的 DIRECT 规则，
-#     避免 siriusxm.com 之类无关域名被误代理。
-
-# ==================================================================
-# 【第二部分】OpenAI / ChatGPT 全系（核心域名 + CDN + 存储）
+# 【第一部分】OpenAI / ChatGPT 全系（核心域名 + CDN + 存储）
 # ==================================================================
 DOMAIN-SUFFIX,openai.com,Ai
 DOMAIN-SUFFIX,chatgpt.com,Ai
@@ -88,7 +18,6 @@ DOMAIN,production-openaicom-storage.azureedge.net,Ai
 DOMAIN,openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net,Ai
 DOMAIN,openaicomproductionae4b.blob.core.windows.net,Ai
 DOMAIN-SUFFIX,chatgpt.livekit.cloud,Ai
-# ---- 对照 AppleFlow v1.0.1 补充 ----
 DOMAIN-SUFFIX,chat.com,Ai
 DOMAIN-SUFFIX,sora.com,Ai
 DOMAIN-SUFFIX,oaistatsig.com,Ai
@@ -96,14 +25,14 @@ DOMAIN,openai.com.cdn.cloudflare.net,Ai
 DOMAIN,openai-api.arkoselabs.com,Ai
 
 # ==================================================================
-# 【第三部分】OpenAI 客户端依赖（功能开关 / 统计 SDK）
+# 【第二部分】OpenAI 客户端依赖（功能开关 / 统计 SDK）
 # ==================================================================
 DOMAIN-SUFFIX,featuregates.org,Ai
 DOMAIN-SUFFIX,statsigapi.net,Ai
 DOMAIN,api.statsig.com,Ai
 
 # ==================================================================
-# 【第四部分】Google / DeepMind / Gemini
+# 【第三部分】Google / DeepMind / Gemini
 # ==================================================================
 DOMAIN,ai.google.dev,Ai
 DOMAIN,makersuite.google.com,Ai
@@ -121,13 +50,12 @@ DOMAIN-SUFFIX,googleusercontent.com,Ai
 DOMAIN-SUFFIX,googleapis.com,Ai
 DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com,Ai
 DOMAIN-SUFFIX,grazie.ai,Ai
-# ---- 对照 AppleFlow v1.0.1 补充：视觉智能 / Gemini 静态资源 ----
 DOMAIN,lens.google.com,Ai
 DOMAIN,gemini.gstatic.com,Ai
 DOMAIN,aistudio.google.com,Ai
 
 # ==================================================================
-# 【第五部分】Anthropic / Claude
+# 【第四部分】Anthropic / Claude
 # ==================================================================
 DOMAIN-SUFFIX,anthropic.com,Ai
 DOMAIN-SUFFIX,claude.ai,Ai
@@ -135,7 +63,7 @@ DOMAIN-SUFFIX,claude.com,Ai
 DOMAIN-SUFFIX,claudeusercontent.com,Ai
 
 # ==================================================================
-# 【第六部分】Microsoft Copilot / Bing AI
+# 【第五部分】Microsoft Copilot / Bing AI
 # ==================================================================
 DOMAIN,api.msn.com,Ai
 DOMAIN,assets.msn.com,Ai
@@ -155,7 +83,7 @@ DOMAIN-SUFFIX,bing-shopping.microsoft-falcon.io,Ai
 DOMAIN-SUFFIX,edgeservices.bing.com,Ai
 
 # ==================================================================
-# 【第七部分】Meta AI / 其他 AI 平台
+# 【第六部分】Meta AI / 其他 AI 平台
 # ==================================================================
 DOMAIN-SUFFIX,meta.ai,Ai
 DOMAIN-SUFFIX,meta.com,Ai
@@ -172,7 +100,7 @@ DOMAIN-SUFFIX,dify.ai,Ai
 DOMAIN-SUFFIX,ai.com,Ai
 
 # ==================================================================
-# 【第八部分】AI 服务依赖的通用第三方基础设施
+# 【第七部分】AI 服务依赖的通用第三方基础设施
 # ==================================================================
 DOMAIN-SUFFIX,algolia.net,Ai
 DOMAIN-SUFFIX,auth0.com,Ai
@@ -192,12 +120,11 @@ DOMAIN,static.cloudflareinsights.com,Ai
 DOMAIN,cdn.usefathom.com,Ai
 
 # ==================================================================
-# ⚠️ 第九部分：宽泛基础设施后缀 —— 谨慎，这些会把非 AI 流量也带代理
+# ⚠️ 第八部分：宽泛基础设施后缀 —— 谨慎，这些会把非 AI 流量也带代理
 # ==================================================================
-# 这些是原 Ai.list 里的宽后缀，会把大量非 AI 流量也带进 Ai 节点：
-# Cloudflare 人机验证反复出现、普通 App 加载变慢、节点故障时日常网站一起打不开。
-# 2026-11-15 起默认停用，上方精确 AI 域名（含 apple-relay.cloudflare.com、
-# OpenAI 的 azureedge.net 具体主机名）已覆盖需求，确有需要再取消注释。
+# 会把大量非 AI 流量也带进 Ai 节点：Cloudflare 人机验证反复出现、
+# 普通 App 加载变慢、节点故障时日常网站一起打不开。
+# 上方精确 AI 域名已覆盖需求，确有需要再取消注释。
 # DOMAIN-SUFFIX,cloudflare.com,Ai
 # DOMAIN-SUFFIX,amazonaws.com,Ai
 # DOMAIN-SUFFIX,azureedge.net,Ai

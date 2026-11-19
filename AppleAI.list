@@ -1,0 +1,63 @@
+# NAME: AppleAI
+# 用途: Apple Intelligence / Siri / PCC 私有云计算（高质量消除、云端生成式功能）
+# policy: Ai
+# 说明: 本规则集只放苹果自家 AI 域名，与 ChatGPT/Gemini/Claude 等第三方 AI 完全分离。
+#       必须放在 Apple.list 之前，否则 apple-relay.* / *.app.apple.com 会被
+#       Apple.list 的 DOMAIN-SUFFIX,apple.com,DIRECT 抢走，PCC 会被大陆出口 IP
+#       秒拒（PrivateCloudComputeError 32033），前端显示「消除此照片时出错。请稍后再试。」
+#       快速消除是纯端侧处理，不受本规则集影响。
+# updated: 2026-11-19
+# 参考: AppleFlow v1.0.1 (Kianuni/AppleFlow)
+
+# ==================================================================
+# 【第一部分】中文 Siri / 来电筛选 —— 必须直连，严禁代理
+# ==================================================================
+# guzzoni / *.siri.apple.com 一旦走海外节点或被 Fake-IP 解析，中文普通话 Siri
+# 会报「我碰到了一点问题」，普通话「询问来电原因」来电筛选也会失效。
+# 注意：gspe1-ssl.ls.apple.com（准入校验）仍走代理，两者分工不同。
+DOMAIN-SUFFIX,guzzoni.apple.com,DIRECT
+DOMAIN-SUFFIX,siri.apple.com,DIRECT
+DOMAIN,dejavu.apple.com,DIRECT
+DOMAIN,sequoia.apple.com,DIRECT
+DOMAIN-SUFFIX,smoot.apple.com,DIRECT
+
+# ==================================================================
+# 【第二部分】PCC 私有云计算 / Apple Intelligence 中继 —— 必须走代理
+# ==================================================================
+# 这些域名都是 apple.com / icloud.com 的子域，必须写在本文件（最顶）里，
+# 否则会被 Apple.list 的直连规则吃掉。
+DOMAIN,ss-cleanup-proxy-prod.us-east-1m.app.apple.com,Ai
+DOMAIN-SUFFIX,app.apple.com,Ai
+DOMAIN-SUFFIX,issuer.apple.com,Ai
+DOMAIN-SUFFIX,ropes.apple.com,Ai
+DOMAIN,mask-api.icloud.com,Ai
+DOMAIN,mask.icloud.com,Ai
+DOMAIN,mask-h2.icloud.com,Ai
+DOMAIN-SUFFIX,apple-relay.akamaized.net,Ai
+
+DOMAIN-SUFFIX,apple-relay.apple.com,Ai
+DOMAIN-SUFFIX,apple-relay.cloudflare.com,Ai
+DOMAIN-SUFFIX,apple-relay.fastly-edge.com,Ai
+DOMAIN,apple-relay.mask.apple-dns.net,Ai
+DOMAIN,apple-carry-relay.cloudflare.com,Ai
+DOMAIN,cp4.cloudflare.com,Ai
+DOMAIN,mask-api.fe2.apple-dns.net,Ai
+DOMAIN-SUFFIX,smp-device-content.apple.com,Ai
+DOMAIN-SUFFIX,xp.apple.com,Ai
+DOMAIN-SUFFIX,mesu.apple.com,Ai
+DOMAIN,gs-loc-cn.apple.com,Ai
+DOMAIN,gspe1-ssl.ls.apple.com,Ai
+DOMAIN,setup.icloud.com,Ai
+# ---- 账号准入与云端探针：缺任一条 PCC 会判定设备不在服务区域 ----
+# 若后续出现 iCloud 账号或推送异常，可只注释 gateway.icloud.com 这一行。
+DOMAIN,gateway.icloud.com,Ai
+DOMAIN,probe.icloud.com,Ai
+DOMAIN,metrics.icloud.com,Ai
+DOMAIN,wps.apple.com,Ai
+# p150-acsegateway.icloud.com 不加入（iCloud+ 专用代理接入，国内用不到）。
+# 备份与照片同步走 pXX-content.icloud.com / icloud-content.com，
+# 在 Apple.list 中是直连，与本规则集无关。
+# ⚠️ bag.itunes.apple.com 严禁加入！
+# 它是 App Store 下载/登录的第一步配置 API（不是 AI 域名），误加会导致
+# 苹果风控在第一步直接拒绝，App Store 无法登录下载。
+# 正确做法：让它走 Apple.list → DOMAIN-SUFFIX,apple.com,DIRECT。

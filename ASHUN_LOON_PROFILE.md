@@ -49,19 +49,21 @@
 ## Loon 策略组与规则顺序（固定，不要改）
 
 ### 策略组名
-- AI 分流策略组: `AI策略组`（Ai.list、AI 相关规则统一走此策略组，常用节点 SG-HY2）
+- AI 分流策略组: `AI策略组`（AppleAI.list、Ai.list 统一走此策略组，常用节点 SG-HY2）
+- 规则拆分：苹果智能用 `AppleAI.list`，第三方 AI 用 `Ai.list`，两者互不混杂
 - Final 兜底: `落地`（海外节点，用户不定期更换，不要硬编码节点名）
 
 ### 规则集顺序（从上到下）
 ```
-① Ai.list                 → AI策略组    ← 必须排最顶，不能被 Apple.list 吃掉 apple-relay
-② adrules                 → REJECT
-③ LAN                     → DIRECT
-④ Apple.list              → DIRECT     ← 含 DOMAIN-SUFFIX,apple.com,DIRECT
-⑤ China.list              → DIRECT
-⑥ GEOIP,CN 本地规则        → DIRECT     ← 开关必须关闭（灰色），放在 China.list 之后、Final 之前
-⑦ 海外媒体 / TikTok
-⑧ Final                    → 落地
+① AppleAI.list            → AI策略组    ← 苹果智能/PCC 专用，必须排在 Apple.list 前，否则 apple-relay 被直连吃掉
+② Ai.list                 → AI策略组    ← 第三方 AI（ChatGPT/Gemini/Claude/Copilot…），不含苹果域名
+③ adrules                 → REJECT
+④ LAN                     → DIRECT
+⑤ Apple.list              → DIRECT     ← 含 DOMAIN-SUFFIX,apple.com,DIRECT
+⑥ China.list              → DIRECT
+⑦ GEOIP,CN 本地规则        → DIRECT     ← 开关必须关闭（灰色），放在 China.list 之后、Final 之前
+⑧ 海外媒体 / TikTok
+⑨ Final                    → 落地
 ```
 
 ## App Store 下载问题（已解决，留教训）
