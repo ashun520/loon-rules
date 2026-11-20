@@ -51,6 +51,8 @@
 | 闲鱼 | `Xianyu/Xianyu.plugin` | 内联 jq | mtop.taobao.com |
 | 懂车帝 | `Dongchedi/Dongchedi.plugin` | 内联 jq | dcarapi.com |
 | 陌陌 | `Momo/Momo.plugin` | `Momo/momo_cleaner.js` | api.immomo.com |
+| 飞猪 | `Feizhu/Feizhu.plugin` | `Feizhu/feizhu_splash_page_block.js` + 内联规则 | acs/guide-acs/market/outfliggys.m.taobao.com, dorangesource/tbexpand.alicdn.com |
+| 米家 | `Mijia/Mijia.plugin` | `Mijia/mijia_splash.js` | home.mi.com |
 
 ## Apple AI 分流域名（AppleAI.list 核心）
 ```
