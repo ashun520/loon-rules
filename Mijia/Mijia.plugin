@@ -1,0 +1,17 @@
+#!name = 米家去广告
+#!desc = 拦截米家开屏广告接口（home.mi.com openingBanner），清空广告列表；需开启 MITM 并信任 Loon 证书
+#!author = ashun520
+#!homepage = https://github.com/ashun520/loon-rules
+#!icon = https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/fb/86/a6/fb86a64b-a375-b630-b067-6b145e14b0fb/AppIcon-0-0-1x_U007emarketing-0-8-0-sRGB-0-85-220.png/512x512bb.jpg
+#!loon_version = 3.5.1
+#!tag = 去广告,米家
+#!system = iOS,iPadOS
+
+# 2026-11-20 抓包实证：开屏广告来自 home.mi.com 的 openingBanner 接口，
+# 返回 data.list[0].type=29，跳转 m.mi.com 商品页（g_utm=Mijia.App.Banner.kaiping.*）。
+# 脚本把它清空为 []，页面其它推荐接口不动。
+[Script]
+http-response ^https:\/\/home\.mi\.com\/cgi-op\/api\/v1\/recommendation\/openingBanner script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Mijia/mijia_splash.js?v=20261120, requires-body=1, max-size=1048576, timeout=10, tag=米家开屏广告
+
+[MITM]
+hostname = home.mi.com
