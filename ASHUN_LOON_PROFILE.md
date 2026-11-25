@@ -156,3 +156,22 @@ DOMAIN-KEYWORD,siri,Ai
 - 「China.list 还要加什么」
 - 「我的 Loon 配置」
 - 「换手机了帮我恢复 Loon」
+
+## 去广告插件编写约定（防轮换，2026-11-25 起强制执行）
+
+背景：飞猪开屏从 `/xj/page/` 换成 `/xj-csr/page/` 导致拦截失效，写死路径的写法不可持续。
+此后**新建插件与更新旧插件都必须遵守**，老插件在下次改动时一并迁移，不为迁移单独动已稳定的规则。
+
+1. **路径用特征泛匹配**：不写死前缀、版本号、活动名、哈希。
+   例：`/[^\s]*\/page\/pcraft\/pcraft\/`，而不是 `/xj/page/pcraft/pcraft/`。
+2. **优先用请求上下文判定**：Referer / UA / 页面容器标识比 URL 更可靠。
+   飞猪开屏的判据是 `Referer: page://cache_splashScreen`，换活动名、换前缀都不影响。
+3. **按 Referer 判定时必须同时限定路径**：正常预加载页也可能带同样的 Referer，
+   只按 Referer 一刀切会误伤正常业务。
+4. **域名级 REJECT 只用于独立广告域/监测域**；与业务同域的接口一律走 MITM 改写，禁止整域封。
+5. **改写返回"合法空结构"，不直接 REJECT**：REJECT 会让 App 判定接口失败并回退备用广告源。
+6. **对自有业务域名禁 QUIC**：`AND,((DOMAIN-SUFFIX,xxx),(PROTOCOL,QUIC)),REJECT`，
+   否则走 HTTP/3 时 Loon 看不到也改不了。
+7. **每个插件配 NOTES.md**：记录已确认的广告接口、正常业务接口（防误伤白名单）、
+   实证日期、排障流程。模板见 `Feizhu/NOTES.md`。
+8. **改脚本必改 `?v=` 参数**，避免 Loon 用缓存的旧脚本。
