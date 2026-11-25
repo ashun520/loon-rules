@@ -107,6 +107,10 @@ DOMAIN-SUFFIX,facebook.com,Ai
 DOMAIN-SUFFIX,facebook.net,Ai
 DOMAIN-SUFFIX,fbcdn.net,Ai
 DOMAIN-SUFFIX,fbsbx.com,Ai
+DOMAIN-SUFFIX,fb.com,Ai
+DOMAIN-SUFFIX,instagram.com,Ai
+DOMAIN-SUFFIX,cdninstagram.com,Ai
+DOMAIN-SUFFIX,messenger.com,Ai
 DOMAIN-SUFFIX,midjourney.com,Ai
 DOMAIN-SUFFIX,perplexity.ai,Ai
 DOMAIN-SUFFIX,pplx.ai,Ai
