@@ -102,6 +102,11 @@ DOMAIN-SUFFIX,edgeservices.bing.com,Ai
 # ==================================================================
 DOMAIN-SUFFIX,meta.ai,Ai
 DOMAIN-SUFFIX,meta.com,Ai
+# --- Muse from Meta（App 本体登录 / 接口 / 素材 CDN，缺一个都打不开）---
+DOMAIN-SUFFIX,facebook.com,Ai
+DOMAIN-SUFFIX,facebook.net,Ai
+DOMAIN-SUFFIX,fbcdn.net,Ai
+DOMAIN-SUFFIX,fbsbx.com,Ai
 DOMAIN-SUFFIX,midjourney.com,Ai
 DOMAIN-SUFFIX,perplexity.ai,Ai
 DOMAIN-SUFFIX,pplx.ai,Ai
