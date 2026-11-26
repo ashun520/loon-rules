@@ -42,6 +42,15 @@ AND,((DOMAIN,guide-acs.m.taobao.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,market.m.taobao.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,dorangesource.alicdn.com),(PROTOCOL,QUIC)),REJECT
 
+# ===== 原生开屏素材（2026-11-27 重装后首启抓包实证）=====
+# 飞猪有两套开屏：H5（pcraft，已在下方熔断）+ 原生全屏图（跳过广告倒计时 + 点击跳转详情页）。
+# 原生开屏的素材走阿里独立素材 CDN，HTTP 明文、UA=飞猪旅行、无 Referer，与业务图片完全分离：
+#   http://cdn.ynuf.aliapp.org/b57i/pf0q/pbl3/uCkJ/18974_r52eOf079A_20260202195912.jpg
+# 路径每次活动都随机，不能写死，按域名整体拦截（独立素材域，不承载订酒店/机票等业务图）。
+# 纯域名层拦截，无需 MITM；换活动、换图片内容均不受影响。
+DOMAIN-SUFFIX,ynuf.aliapp.org,REJECT
+AND,((DOMAIN-SUFFIX,ynuf.aliapp.org),(PROTOCOL,QUIC)),REJECT
+
 # ===== 抓包实证补充（2026-11-14 HAR）=====
 # 广告监测 amdc 不走域名，直连裸 IP 的 HTTP 80（如 http://59.82.34.147/amdc/mobileDispatch），域名规则无效
 URL-REGEX,^http://.+?/amdc/,REJECT

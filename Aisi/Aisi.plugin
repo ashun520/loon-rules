@@ -1,0 +1,32 @@
+#!name = 爱思助手去广告
+#!desc = 拦截开屏广告配置、开屏素材图与广告点击回传；不影响应用列表、搜索、下载与更新。需开启 MITM over HTTP/2 并信任 Loon 证书。装完杀掉 App 重开生效。
+#!author = ashun520
+#!homepage = https://github.com/ashun520/loon-rules
+#!system = iOS,iPadOS
+#!loon_version = 3.5.1
+#!tag = 去广告,爱思助手
+#!type = normal
+
+[Rule]
+# 开屏素材图（2026-11-27 抓包实证）：
+#   http://d.image.i4.cn/adInfo/image/original/2026/09/29/18/1790677596942_63.jpg
+# 该域 /image/icon/ 是应用图标（正常内容），只拦 /adInfo/ 前缀，不误伤图标与截图。
+URL-REGEX,^https?://d\.image\.i4\.cn/adInfo/,REJECT
+
+[Rewrite]
+# 开屏广告配置接口（2026-11-27 抓包实证）
+# https://list-app-m.i4.cn/getopfstadinfo.xhtml 返回 base64(JSON)：
+#   {"contentinfo":"185954","targetInfo":{"route":"AppDetail","description":"应用详情"},
+#    "showtime":0,"position":1,"type":7,"content":"http://d.image.i4.cn/adInfo/..."}
+# 用 reject-200（HTTP 200 空响应）而非 REJECT：App 拿到空配置即视为无开屏，不触发备用广告源。
+# opfst 是开屏接口命名前缀，泛匹配处理，改名（如 getopfstadinfo2）也能命中。
+^https?:\/\/list-app-m\.i4\.cn\/[^\s\/]*opfst[^\s]*$ reject-200
+
+# 广告点击回传（同一接口在抓包中反复出现）
+^https?:\/\/list-app-m\.i4\.cn\/adclickcb\.xhtml(\?.*)?$ reject-200
+
+[MITM]
+hostname = list-app-m.i4.cn
+
+# 正常接口（不要动）：search-app-m.i4.cn/updateAppQuery.xhtml、list-app-m.i4.cn/getAppList.xhtml、
+# pub-conf-m.i4.cn/getversioninfo.xhtml、cl-m.i4.cn/message_center.action、dl.i4.cn（下载）

@@ -105,6 +105,7 @@
 | 陌陌 | `Momo/Momo.plugin` | `Momo/momo_cleaner.js` | api.immomo.com |
 | 飞猪（强效） | `Feizhu/Feizhu.plugin` | `Feizhu/feizhu_splash_cleaner.js` + `Feizhu/fliggy_strip_zstd.js` + `Feizhu/feizhu_splash_page_block.js` | acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, outfliggys.m.taobao.com, dorangesource/tbexpand.alicdn.com |
 | 米家 | `Mijia/Mijia.plugin` | `Mijia/mijia_splash.js` | home.mi.com |
+| 爱思助手 | `Aisi/Aisi.plugin` | 无（内联 Rewrite，开屏配置 reject-200） | list-app-m.i4.cn |
 
 ### 飞猪抓包结论（2026-11-14，两份 HAR：86 / 98 条请求）
 - **开屏广告素材 = 视频**：冷启动时从 `https://tbexpand.alicdn.com/<id>/<hash>.mp4?...&p=cloudvideo...` 拉取（154KB，UA=飞猪旅行/10.0.11.104）→ 已拦 `URL-REGEX,^https?://tbexpand\.alicdn\.com/.*\.mp4,REJECT` + 该域 QUIC 阻断 + MITM

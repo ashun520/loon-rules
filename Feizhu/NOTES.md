@@ -62,3 +62,24 @@ g.alicdn.com / gw.alicdn.com / tbexpand.alicdn.com
 3. 在 HAR 里找 Referer 含 `cache_splashScreen` 且返回 200 的请求
 4. 若是新的 pcraft 前缀：现规则为泛匹配，理论上已覆盖，需检查插件是否更新
 5. 若是全新域名或原生图片开屏：把素材 URL 补充到本文件并加规则
+
+## 六、原生开屏（2026-11-27 重装后首启抓包实证）
+
+飞猪有**两套开屏**，不要只查 H5 那条：
+
+| 类型 | 特征 | 链路 | 处理 |
+|---|---|---|---|
+| H5 开屏 | 网页活动页 | `outfliggys.../page/pcraft/pcraft/` | `feizhu_splash_page_block.js` 按 Referer + 路径泛匹配熔断 |
+| **原生开屏** | 右上「跳过广告」倒计时 + 底部「点击跳转详情页面」 | 独立素材 CDN 下载全屏图，客户端原生渲染 | 域名层 REJECT |
+
+原生开屏素材实测：
+
+```
+http://cdn.ynuf.aliapp.org/b57i/pf0q/pbl3/uCkJ/18974_r52eOf079A_20260202195912.jpg
+UA: 飞猪旅行/10.0.11.104（URL 编码） · 无 Referer · HTTP 明文 · 解压后约 168KB
+```
+
+- 路径每次活动随机，**按域名 `ynuf.aliapp.org` 整体拦截**，不要写死路径
+- 该域不承载酒店/机票等业务图片，业务图仍走 `gw.alicdn.com/imgextra/`
+- 重装 App 后首启必重新下载素材，是抓这条链路的唯一可靠时机
+- 本地已缓存的素材不会发请求，抓包里看不到 ≠ 没有开屏
