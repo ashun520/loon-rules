@@ -103,9 +103,7 @@ http-request ^https?:\/\/outfliggys\.m\.taobao\.com\/[^\s]*\/page\/pcraft\/pcraf
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.train\.homepage\/1\.0(\?.*)?$ response-body-json-jq '. as $o | try (if .data.holidayMarketingModule then del(.data.holidayMarketingModule) else . end) catch $o'
 
 [MITM]
-# g.alicdn.com 仅用于排查开屏素材（2.97MB 的连接目前只看到域名看不到 URL）。
-# 定位到具体路径后，应把对应 URL 加进 [Rule]/[URL Rewrite]，并可从本行移除 g.alicdn.com 以减少解密开销。
-hostname = acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com, tbexpand.alicdn.com, outfliggys.m.taobao.com, g.alicdn.com
+hostname = acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com, tbexpand.alicdn.com, outfliggys.m.taobao.com
 
 # 说明：
 # 1. acs.m.taobao.com / guide-acs.m.taobao.com 是阿里 MTOP 网关，淘宝/闲鱼也在用。
