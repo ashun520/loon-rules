@@ -51,6 +51,16 @@ AND,((DOMAIN,dorangesource.alicdn.com),(PROTOCOL,QUIC)),REJECT
 DOMAIN-SUFFIX,ynuf.aliapp.org,REJECT
 AND,((DOMAIN-SUFFIX,ynuf.aliapp.org),(PROTOCOL,QUIC)),REJECT
 
+# ===== 开屏 H5 页 · Rule 层兜底（2026-11-27 仪表实证）=====
+# 实测请求：https://outfliggys.m.taobao.com/xj-csr/page/pcraft/pcraft/channel/collect-energy-daily?...
+# 该请求实际策略是 DOMAIN-SUFFIX,taobao.com,DIRECT，响应仅 230B（外壳页，内容由 JS 注入），
+# 脚本按 Referer 判定未命中 → 页面正常渲染 → WebView 截图写入本地缓存，
+# 之后每次冷启动直接播放这张截图，所以抓包永远看不到图片请求。
+# 结论：拦页面而不是拦图片，且必须放在 Rule 层——Rule 引擎在路由前生效，
+# 不受 DIRECT、Referer 变化、MITM 是否解密影响，这是唯一稳定解法。
+# 代价：App 内主动点开的同类营销页（集能量等活动）会打不开，属可接受取舍。
+URL-REGEX,^https?://outfliggys\.m\.taobao\.com/[^\s]*/page/pcraft/pcraft/,REJECT
+
 # ===== 抓包实证补充（2026-11-14 HAR）=====
 # 广告监测 amdc 不走域名，直连裸 IP 的 HTTP 80（如 http://59.82.34.147/amdc/mobileDispatch），域名规则无效
 URL-REGEX,^http://.+?/amdc/,REJECT
