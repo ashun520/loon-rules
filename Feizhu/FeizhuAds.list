@@ -1,0 +1,18 @@
+#!/usr/bin/env loon
+#!name = 飞猪广告拦截（高优先级）
+#!desc = 打掉飞猪开屏 H5 页与广告素材域。必须放在 China.list 之前，否则 taobao.com 的 DIRECT 规则会抢先命中。
+
+# ===== 开屏 H5 页（核心）=====
+# 实证：https://outfliggys.m.taobao.com/xj-csr/page/pcraft/pcraft/channel/collect-energy-daily
+# App 加载该页后截图存入本地，之后每次冷启动播放截图，不产生任何网络请求，抓包看不到。
+# 因此必须在路由阶段直接拒绝，且必须排在任何 taobao.com DIRECT 规则之前。
+URL-REGEX,^https?://outfliggys\.m\.taobao\.com/.*/page/pcraft/pcraft/,REJECT
+
+# ===== 原生开屏素材域（独立 CDN，不承载业务图）=====
+DOMAIN-SUFFIX,ynuf.aliapp.org,REJECT
+
+# ===== 广告曝光打点 =====
+DOMAIN-SUFFIX,adashx.ut.fliggy.com,REJECT
+
+# ===== 广告监测：不走域名，直连裸 IP 的 HTTP 80 =====
+URL-REGEX,^http://.+?/amdc/,REJECT
