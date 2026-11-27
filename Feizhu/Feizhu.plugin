@@ -97,17 +97,20 @@ http-response ^https?:\/\/(?:acs|guide-acs|h5api)\.m\.(?:taobao|fliggy)\.com\/gw
 # ===== 诊断脚本已停用（已定位开屏素材域 tbexpand.alicdn.com，无需再记录 outfliggys）=====
 
 [Rewrite]
+# 注意：Loon 旧版 Rewrite 语法「按空格分隔参数」，jq 表达式里的空格必须写成 \x20，
+#       否则会在第一个空格处被截断（不报错、静默失效）。以下三条均已转义。
+#       官方文档：https://nsloon.app/docs/Rewrite/ →「空格」一节
 # ===== 3AD SDK / 广告路由配置：整域匹配（配置名与哈希会变，不能写死）=====
-^https?:\/\/dorangesource\.alicdn\.com\/[^\s]*$ response-body-json-jq '. as $o | try (if (.content? | type) == "object" then ((if ((.name? // "") | test("ad_config"; "i")) then .content.fliggy_ad_router_update_jump_url_switch = "0" else . end) | .content |= (del(.["SplashAd.placement_id"], .["SplashAd.BETA.placement_id"], .["SplashAd.DEBUG.placement_id"], .["SplashAd.load_after_start_enable"], .["SplashAd.enable"], .["InterstitialAd.load_after_start_enable"], .["RewardedAd.load_after_start_enable"]) | with_entries(select((.key | test("splash"; "i")) | not)))) else . end) catch $o'
+^https?:\/\/dorangesource\.alicdn\.com\/[^\s]*$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20(.content?\x20|\x20type)\x20==\x20"object"\x20then\x20((if\x20((.name?\x20//\x20"")\x20|\x20test("ad_config";\x20"i"))\x20then\x20.content.fliggy_ad_router_update_jump_url_switch\x20=\x20"0"\x20else\x20.\x20end)\x20|\x20.content\x20|=\x20(del(.["SplashAd.placement_id"],\x20.["SplashAd.BETA.placement_id"],\x20.["SplashAd.DEBUG.placement_id"],\x20.["SplashAd.load_after_start_enable"],\x20.["SplashAd.enable"],\x20.["InterstitialAd.load_after_start_enable"],\x20.["RewardedAd.load_after_start_enable"])\x20|\x20with_entries(select((.key\x20|\x20test("splash";\x20"i"))\x20|\x20not))))\x20else\x20.\x20end)\x20catch\x20$o'
 
 # ===== 弹层页链路：过滤 h5-crm-poplayer 弹层页面，保留其它 serverless 页面 =====
-^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.serverless\.api\.gateway\/2\.0(\?.*)?$ response-body-json-jq '. as $o | try (if .data.result.model.data.pages then (.data.result.model.data.pages |= map(select((.url // "") | contains("h5-crm-poplayer") | not))) else . end) catch $o'
+^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.serverless\.api\.gateway\/2\.0(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.data.result.model.data.pages\x20then\x20(.data.result.model.data.pages\x20|=\x20map(select((.url\x20//\x20"")\x20|\x20contains("h5-crm-poplayer")\x20|\x20not)))\x20else\x20.\x20end)\x20catch\x20$o'
 
 # ===== H5 弹层页本体 =====
 ^https?:\/\/market\.m\.taobao\.com\/app\/trip\/h5-crm-poplayer\/pages\/(home|fliggy)\/index\.html(\.fmanifest\.html)?(\?.*)?$ reject-200
 
 # ===== 首页节日营销模块 =====
-^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.train\.homepage\/1\.0(\?.*)?$ response-body-json-jq '. as $o | try (if .data.holidayMarketingModule then del(.data.holidayMarketingModule) else . end) catch $o'
+^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.train\.homepage\/1\.0(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.data.holidayMarketingModule\x20then\x20del(.data.holidayMarketingModule)\x20else\x20.\x20end)\x20catch\x20$o'
 
 [MITM]
 hostname = acs.m.taobao.com, guide-acs.m.taobao.com, h5api.m.taobao.com, market.m.taobao.com, acs.m.fliggy.com, guide-acs.m.fliggy.com, dorangesource.alicdn.com, tbexpand.alicdn.com, outfliggys.m.taobao.com
