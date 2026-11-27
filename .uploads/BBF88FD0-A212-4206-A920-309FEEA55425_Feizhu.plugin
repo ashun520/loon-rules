@@ -1,0 +1,100 @@
+#!name = 飞猪去广告 v5.1（语法修正版）
+#!desc = 飞猪 iOS 去广告。相对 v5 修正：jq 复写空格转义、脚本参数改为 Loon 支持字段、开屏接口覆盖面补齐（含 querytmsresources）。需开启 MITM 并信任 Loon 证书。
+#!author = ashun520（规则参考 Zz1xuan/ONE、ElyDemiurge/Loon-Plugins）
+#!homepage = https://github.com/ashun520/loon-rules
+#!icon = https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/88/69/f7/8869f7a8-7968-2cdc-d19e-044ab971dd60/AppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/512x512bb.jpg
+#!system = iOS,iPadOS
+#!loon_version = 3.5.1
+#!tag = 去广告,飞猪
+#!type = normal
+
+[Rule]
+# 飞猪自有广告投放域
+DOMAIN-SUFFIX,ad.fliggy.com,REJECT
+# 阿里广告监测服务（开屏曝光/点击归因）
+DOMAIN-SUFFIX,amdc.m.taobao.com,REJECT
+# 飞猪用户行为监测（广告归因用，可选；若影响登录/风控请注释本行）
+DOMAIN-SUFFIX,adashx.ut.fliggy.com,REJECT
+# 广告监测/归因域（实测冷启动时请求：ad-track、h-adashx）
+DOMAIN-SUFFIX,ad-track.fliggy.com,REJECT
+DOMAIN-SUFFIX,h-adashx.ut.fliggy.com,REJECT
+# 阿里系广告联盟/广告素材域（3AD SDK、阿里妈妈、Tanx、广告监测）
+DOMAIN-SUFFIX,tanx.com,REJECT
+DOMAIN-SUFFIX,alimama.com,REJECT
+DOMAIN-SUFFIX,mobaders.com,REJECT
+DOMAIN-SUFFIX,mmstat.com,REJECT
+# 阿里 Tanx 广告素材 CDN
+DOMAIN-SUFFIX,atanx.alicdn.com,REJECT
+# 广告监测（抓包实证：amdc-sibling.alipay.com.cn/query）
+DOMAIN,amdc-sibling.alipay.com.cn,REJECT
+# 开屏广告视频素材（抓包实证：冷启动拉 tbexpand.alicdn.com/*.mp4，154KB，UA=飞猪App）
+# 只拦该域的 mp4，不动图片/其它 App 的素材
+URL-REGEX,^https?://tbexpand\.alicdn\.com/.*\.mp4,REJECT
+AND,((DOMAIN,tbexpand.alicdn.com),(PROTOCOL,QUIC)),REJECT
+# QUIC 定向阻断：保证 HTTPS 流量能被 MITM 重写
+AND,((DOMAIN-SUFFIX,ad.fliggy.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,amdc.m.taobao.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,tanx.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,alimama.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,acs.m.taobao.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,guide-acs.m.taobao.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,acs.m.fliggy.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,guide-acs.m.fliggy.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,market.m.taobao.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,dorangesource.alicdn.com),(PROTOCOL,QUIC)),REJECT
+# ===== 原生开屏素材（2026-11-27 重装后首启抓包实证）=====
+# 飞猪有两套开屏：H5（pcraft）+ 原生全屏图。原生素材走独立素材 CDN，HTTP 明文、无 Referer：
+#   http://cdn.ynuf.aliapp.org/b57i/pf0q/pbl3/uCkJ/18974_r52eOf079A_20260202195912.jpg
+# 路径每次活动随机，按域名整体拦截；该域不承载订酒店/机票业务图。
+DOMAIN-SUFFIX,ynuf.aliapp.org,REJECT
+AND,((DOMAIN-SUFFIX,ynuf.aliapp.org),(PROTOCOL,QUIC)),REJECT
+# ===== 开屏 H5 页 · Rule 层兜底 =====
+# 实测：https://outfliggys.m.taobao.com/xj-csr/page/pcraft/pcraft/channel/collect-energy-daily
+# 页面被 WebView 截图写入本地缓存，之后每次冷启动直接播放这张截图，所以抓包看不到图片请求。
+# 结论：拦页面而不是拦图片，且放在 Rule 层——Rule 在路由前生效，不受 DIRECT/Referer/MITM 影响。
+# 代价：App 内主动点开的同类营销页（集能量等）会打不开。
+URL-REGEX,^https?://outfliggys\.m\.taobao\.com/[^\s]*/page/pcraft/pcraft/,REJECT
+# ===== 抓包实证补充（2026-11-14 HAR）=====
+# 广告监测 amdc 不走域名，直连裸 IP 的 HTTP 80（如 http://59.82.34.147/amdc/mobileDispatch）
+URL-REGEX,^http://.+?/amdc/,REJECT
+# 飞猪自有域名全量禁用 QUIC：广告配置若走 HTTP/3，Loon 看不到也就改不了
+AND,((DOMAIN-SUFFIX,fliggy.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,alibtrip.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,outfliggys.m.taobao.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,h5.wapa.taobao.com),(PROTOCOL,QUIC)),REJECT
+
+[Script]
+# ===== 开屏广告：按命名空间兜底，接口改名也能命中；返回结构合法的空数据，避免 App 回退备用广告源 =====
+# 修正：去掉 Loon 不支持的 max-size / requires-header；requires-body 用 true
+http-response ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.(?:crm\.[^\s]*|(?:screen|splash|ad|advert|brand|allresource|predict|emergencyshutdown)[^\s]*)$ requires-body=true, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/feizhu_splash_cleaner.js?v=20261114b, timeout=30, tag=飞猪开屏广告清洗
+# 开屏接口请求头去掉 zstd，否则响应体无法被脚本按 JSON 解析
+http-request ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.(?:crm\.[^\s]*|(?:screen|splash|ad|advert|brand|allresource|predict|emergencyshutdown)[^\s]*)$ script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_strip_zstd.js?v=20261114b, timeout=10, tag=飞猪开屏请求头处理
+# ===== 配置层清洗（2026-11-27）=====
+# 不拦素材、不碰 CDN，直接把 mtop 返回里的广告节点删掉。
+# 修正：原正则要求关键词前必须有 . 或 /，导致 mtop.trip.activity.querytmsresources 这种
+#       「关键词嵌在单词中间」的接口漏网；此处去掉分隔符要求，覆盖 tms / allresource / predict。
+http-response ^https?:\/\/(?:acs|guide-acs|h5api)\.m\.(?:taobao|fliggy)\.com\/gw\/mtop\.(?:trip|fliggy)\.[^\s]*(?:splash|kaiping|welcome|startup|advert|tms|screen|allresource|predict|adinfo|ad_list|adlist)[^\s]*$ requires-body=true, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_splash_clean.js?v=20261127, timeout=30, tag=飞猪开屏配置清洗
+# ===== 开屏页熔断（2026-11-14 / 2026-11-25 两次抓包实证）=====
+# 注意：上面 Rule 层已对同一 URL 做了 REJECT，本条脚本属于双保险（谁先生效取决于引擎阶段）。
+# 另：该脚本用的是 http-request，按 Loon 文档，请求脚本返回 mock 响应必须写成
+#     $done({ response: { status, headers, body } })，写成顶层 status/headers/body 不会生效。
+#     若要保留脚本方案，请先修这一行（Rule 层生效时本条可视为冗余）。
+http-request ^https?:\/\/outfliggys\.m\.taobao\.com\/[^\s]*\/page\/pcraft\/pcraft\/ script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/feizhu_splash_page_block.js?v=20261126b, timeout=10, tag=飞猪开屏页熔断
+
+[Rewrite]
+# ===== 3AD SDK / 广告路由配置：整域匹配（配置名与哈希会变，不能写死）=====
+# 修正：旧语法按空格拆分参数，jq 表达式里的空格必须写成 \x20，否则 jq 在第一个空格处被截断、整条不生效。
+^https?:\/\/dorangesource\.alicdn\.com\/[^\s]*$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20(.content?\x20|\x20type)\x20==\x20"object"\x20then\x20((if\x20((.name?\x20//\x20"")\x20|\x20test("ad_config";\x20"i"))\x20then\x20.content.fliggy_ad_router_update_jump_url_switch\x20=\x20"0"\x20else\x20.\x20end)\x20|\x20.content\x20|=\x20(del(.["SplashAd.placement_id"],\x20.["SplashAd.BETA.placement_id"],\x20.["SplashAd.DEBUG.placement_id"],\x20.["SplashAd.load_after_start_enable"],\x20.["SplashAd.enable"],\x20.["InterstitialAd.load_after_start_enable"],\x20.["RewardedAd.load_after_start_enable"])\x20|\x20with_entries(select((.key\x20|\x20test("splash";\x20"i"))\x20|\x20not))))\x20else\x20.\x20end)\x20catch\x20$o'
+# ===== 弹层页链路：过滤 h5-crm-poplayer 弹层页面，保留其它 serverless 页面 =====
+^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.serverless\.api\.gateway\/2\.0(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.data.result.model.data.pages\x20then\x20(.data.result.model.data.pages\x20|=\x20map(select((.url\x20//\x20"")\x20|\x20contains("h5-crm-poplayer")\x20|\x20not)))\x20else\x20.\x20end)\x20catch\x20$o'
+# ===== H5 弹层页本体 =====
+^https?:\/\/market\.m\.taobao\.com\/app\/trip\/h5-crm-poplayer\/pages\/(home|fliggy)\/index\.html(\.fmanifest\.html)?(\?.*)?$ reject-200
+# ===== 首页节日营销模块 =====
+^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.train\.homepage\/1\.0(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.data.holidayMarketingModule\x20then\x20del(.data.holidayMarketingModule)\x20else\x20.\x20end)\x20catch\x20$o'
+
+[MITM]
+hostname = acs.m.taobao.com, guide-acs.m.taobao.com, h5api.m.taobao.com, market.m.taobao.com, acs.m.fliggy.com, guide-acs.m.fliggy.com, dorangesource.alicdn.com, tbexpand.alicdn.com, outfliggys.m.taobao.com
+# 说明：
+# 1. acs/guide-acs 是阿里 MTOP 网关，淘宝/闲鱼也在用；本插件只处理 mtop.fliggy.* 与 mtop.trip.* 指定路径。
+# 2. 开屏清洗采用「返回合法空结构」而非 REJECT：REJECT 会让 App 认为接口失败并回退到备用广告源。
+# 3. 若仍有广告，请在 Loon「仪表 → 请求」筛选 fliggy，把开屏瞬间的 mtop 接口完整 URL 发回。
