@@ -1,21 +1,20 @@
 #!name = 百度网盘去广告
-#!desc = 百度网盘 iOS 去广告 v4（整合 kelee 思路）：用 Loon reject-dict 对 activityentry/pcs-adv/plugin/get/tasklist/getsyscfg 直接本地返回空 JSON（不请求网络、不回退缓存），这比 jq 改写更彻底可靠；同时 jq 改写 buy/ad/conf mode=0、afdconf nad_* 置 0、getconfig advertise_* 置 0、feed/kingkongdistrict 过滤广告类型。独立广告域 + QUIC 禁止 + 素材 URL 拦截兜底。MITM 覆盖 pan.baidu.com / afdconf.baidu.com。装完杀 App 重开，建议卸载重装清旧缓存。
+#!desc = 百度网盘 iOS 去广告 v5：全面改用 Loon 新版语法（request if/response if）。参考 sooyaaabo/kelee/chxm1023 方案，reject_dict 对 activityentry/pcs-adv/getconfig/getsyscfg/tasklist/plugin-get/recommend 直接返回空 JSON；response.json.jq 改写 buy/ad/conf mode=0、afdconf nad_* 置 0、feed/kingkongdistrict+feed/cardinfos 过滤广告类型。新增 afd.baidu.com 域名覆盖 + 启动弹窗/设置信息流/热搜/搜索填词/金币乐园/短剧 reject。MITM 覆盖 pan.baidu.com / afdconf.baidu.com / afd.baidu.com。装完杀 App 重开，建议卸载重装清旧缓存。
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
 #!system = iOS,iPadOS
-#!loon_version = 3.5.1
+#!loon_version = 3.5.3(1014)
 #!tag = 去广告,百度网盘
 #!icon = https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b0/89/79/b0897965-5e92-8511-c8f4-09e1f83ed465/AppIcon-0-0-1x_U007ephone-0-1-0-0-sRGB-85-220.png/512x512bb.jpg
 
 # ===== 强制 MITM 域走 TCP（禁用 QUIC）=====
-# QUIC 会绕过中间人，导致下方 [Rewrite] jq 改写完全命中不了（静默失效）。
-# 拒绝这两个域的 QUIC 后，App 自动回退 TCP/443，MITM 才能改写。不影响正常 API（HAR 实测本就走 TCP）。
+# QUIC 会绕过中间人，导致 [Rewrite] 改写完全命中不了（静默失效）。
 [Rule]
 AND,((DOMAIN-SUFFIX,pan.baidu.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,afdconf.baidu.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,afd.baidu.com),(PROTOCOL,QUIC)),REJECT
 
 # ===== 独立广告域（纯规则层拦截，无需 MITM）=====
-# 来源：2026-11-27 HAR 抓包 + 百度已知广告域
 DOMAIN-SUFFIX,yunxish.com,REJECT
 AND,((DOMAIN-SUFFIX,yunxish.com),(PROTOCOL,QUIC)),REJECT
 DOMAIN-SUFFIX,nuomi.com,REJECT
@@ -47,63 +46,70 @@ AND,((DOMAIN-SUFFIX,cp01-clouddisk-3.epc.baidu.com),(PROTOCOL,QUIC)),REJECT
 DOMAIN-SUFFIX,issuecdn.baidupcs.com,REJECT
 AND,((DOMAIN-SUFFIX,issuecdn.baidupcs.com),(PROTOCOL,QUIC)),REJECT
 
-# 广告上报接口（buy/ad/analytics 纯上报，无业务依赖，直接 REJECT）
-# 注意：开屏配置接口 /buy/ad/conf 绝不能 REJECT（会回退缓存素材），交给下方 Script 改写 mode=0
+# 广告上报接口（buy/ad/analytics 纯上报，直接 REJECT）
 URL-REGEX,^https?://pan\.baidu\.com/buy/ad/analytics,REJECT
 AND,((URL-REGEX,^https?://pan\.baidu\.com/buy/ad/analytics),(PROTOCOL,QUIC)),REJECT
 
-# 开屏素材保险（正常由配置层 mode=0 阻断，此条防接口轮换）
-# 2026-11-27 HAR 实证：staticsns.cdn.bcebos.com/amis/.../倒计时4_00000_iSpt_compressed.gif（489KB）
-# 该域同时承载正常资源（IOS首页角标上滑状态*.png），只按广告命名特征拦截，不整域 REJECT
+# 开屏素材保险（正常由配置层阻断，此条防接口轮换）
+# 该域同时承载正常资源（IOS首页角标上滑状态*.png），只按广告命名特征拦截
 URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*iSpt,REJECT
 AND,((URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*iSpt),(PROTOCOL,QUIC)),REJECT
 URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE%A1%E6%97%B6,REJECT
 AND,((URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE%A1%E6%97%B6),(PROTOCOL,QUIC)),REJECT
-# 开屏 jpg 素材（URL 编码「开屏」= %E5%BC%80%E5%B1%8F），activityentry pos=123 下发，保险拦截
 URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%BC%80%E5%B1%8F,REJECT
 AND,((URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%BC%80%E5%B1%8F),(PROTOCOL,QUIC)),REJECT
 
-# ===== [Rewrite]：reject-dict 优先（本地直接返回空 JSON，不请求网络、不回退缓存）+ jq 改写 =====
-# 策略来源：参考 kelee.onesur Loon/LPX 方案（用 Surge Map Local 返回空 JSON，效果比改写好）
-# 核心差异：reject-dict 不发真实请求 → App 收到的是"HTTP 200 + {}"而不是失败 → 不触发回退缓存
-# 但 reject-dict 仍需 MITM 覆盖域名（Loon Rewrite 规则统一走 MITM）
+# ===== [Rewrite] Loon 新版语法 =====
+# 语法：request if ${url} ~= /pattern/i then reject_dict(200)
+#       response if ${url} ~= /pattern/i then response.json.jq("表达式")
+# jq 表达式内双引号用 \" 转义，空格正常写（不需要 \x20）
 [Rewrite]
-# ═══════════════════════════════════════════════════════════════
-# 第一梯队：reject-dict 直接返回 {}（最彻底，阻断广告数据源头）
-# ═══════════════════════════════════════════════════════════════
+# ═══ reject_dict 层：本地直接返回 {}（不请求网络、不回退缓存）═══
 # ★开屏素材真正源头★（HAR 实证所有 iSpt/倒计时/开屏 素材 URL 仅由此接口下发）
-^https?:\/\/pan\.baidu\.com\/act\/api\/activityentry(\?.*)?$ reject-dict
-# 场景/信息流广告配置（scene_list 整段给空，比 jq 置 [] 更彻底）
-^https?:\/\/pan\.baidu\.com\/rest\/\d+\.\d+\/pcs\/adv(\?.*)?$ reject-dict
-# 推荐列表（首页/发现页广告入口，kelee 同改）
-^https?:\/\/pan\.baidu\.com\/recommend\/query\/list(\?.*)?$ reject-dict
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/act\/api\/activityentry\?/i then reject_dict(200)
+# 场景/信息流广告配置
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/rest\/\d\.\d\/pcs\/adv\?/i then reject_dict(200)
+# 全局配置（含 advertise_* 开关，kelee 同改）
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/api\/getconfig\?/i then reject_dict(200)
+# 系统配置（含 P2P 种子下发，kelee 同改）
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/api\/getsyscfg\?/i then reject_dict(200)
+# 任务积分列表（广告诱导积分）
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/api\/taskscore\/tasklist\?/i then reject_dict(200)
 # 插件配置（可能含广告模块/运营位）
-^https?:\/\/pan\.baidu\.com\/api\/plugin\/get(\?.*)?$ reject-dict
-# 任务积分列表（广告诱导积分，给空不影响网盘核心功能）
-^https?:\/\/pan\.baidu\.com\/api\/taskscore\/tasklist(\?.*)?$ reject-dict
-# 系统配置（含 P2P 种子下发，给空不影响核心功能，kelee 同改）
-^https?:\/\/pan\.baidu\.com\/api\/getsyscfg(\?.*)?$ reject-dict
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/api\/plugin\/get\?/i then reject_dict(200)
+# 推荐列表（首页/发现页广告入口）
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/recommend\/query\/list\?/i then reject_dict(200)
+# 短剧推荐
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/recommend\/shortseries\/list\?/i then reject_dict(200)
 
-# ═══════════════════════════════════════════════════════════════
-# 第二梯队：jq 改写（需要保留非广告字段，不能直接给空）
-# ═══════════════════════════════════════════════════════════════
-# 开屏配置 mode=0（双重保险：就算 activityentry reject-dict 漏了，这个让 App 不启动开屏流程）
+# ═══ reject(200) 层：HTTP 200 空 body（用于弹窗/信息流等不需要 JSON 结构的接口）═══
+# 启动弹窗
+request if ${url} ~= /^https?:\/\/.*baidu\.com\/rest\/.*\/membership\/proxy\/guide/i then reject(200)
+# 设置信息流
+request if ${url} ~= /^https?:\/\/pan\.baidu\.com\/act\/v\d\/(bchannel|welfare)\/list/i then reject(200)
+# 热搜 list
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/feed\/hotlist/i then reject(200)
+# 活动推广（独立域）
+request if ${url} ~= /^https?:\/\/.*zhangyuyidong\.cn\/api\/zysdk/i then reject(200)
+# 搜索填词
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/queryintent\/queryhint/i then reject(200)
+# 金币乐园
+request if ${url} ~= /^https:\/\/pan\.baidu\.com\/coins\/center\/notice/i then reject(200)
+
+# ═══ response.json.jq 改写层（需要保留非广告字段）═══
+# 开屏配置 mode=0（双重保险：就算 activityentry reject_dict 漏了，这个让 App 不启动开屏流程）
 # HAR 实证该接口每次冷启动必请求，返回 data.mode（1=播放 0=不播放）
-^https?:\/\/pan\.baidu\.com\/buy\/ad\/conf(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.data\x20then\x20(.data.mode\x20=\x200)\x20else\x20.\x20end)\x20catch\x20$o'
-# 全局配置 advertise_* 置 0（public_system_setting 内嵌的视频广告/设置页 Banner 开关）
-# 此接口不能 reject-dict 给空——有大量非广告配置会丢失
-^https?:\/\/pan\.baidu\.com\/api\/getconfig(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.list\x20then\x20(.list\x20|=\x20map(if\x20.conf_key=="public_system_setting"\x20then\x20(.value\x20|=\x20(fromjson\x20|\x20(.advertise_video_switch=0)\x20|\x20(.advertise_video_download_switch=0)\x20|\x20(.setting_page_advertise_banner_present_switch=0)\x20|\x20tojson))\x20else\x20.\x20end))\x20else\x20.\x20end)\x20catch\x20$o'
+response if ${url} ~= /^https:\/\/pan\.baidu\.com\/buy\/ad\/conf\?/i then response.json.jq(". as $o | try (if .data then (.data.mode = 0) else . end) catch $o")
 # 首页信息流 kingkongdistrict：过滤小说/短剧/打印/招聘广告类型（kelee 同改）
-# 这是首页信息流卡片广告，HAR 里 4 次请求
-^https?:\/\/pan\.baidu\.com\/feed\/kingkongdistrict(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(.data.data\x20|=\x20map(select((.type\x20//\x20"")\x20|test("novel|shortplay|print|job_hunt";\x20"i")\x20|\x20not)))\x20catch\x20$o'
+response if ${url} ~= /^https:\/\/pan\.baidu\.com\/feed\/kingkongdistrict\?/i then response.json.jq(".data.data |= map(select(.type != \"novel\" and .type != \"shortplay\" and .type != \"print\" and .type != \"job_hunt\"))")
+# 首页信息流 cardinfos：过滤广告卡片（sooyaaabo 同改）
+response if ${url} ~= /^https:\/\/pan\.baidu\.com\/feed\/cardinfos\?/i then response.json.jq(". as $o | try (if .data then (.data |= map(select((.type // \"\") | test(\"ad|banner|promot\"; \"i\") | not))) else . end) catch $o")
 # 会员中心 advertiseContent 置空（保险层）
-^https?:\/\/pan\.baidu\.com\/rest\/2\.0\/membership\/user(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.reminder\x20then\x20(.reminder\x20|=\x20(.advertiseContent\x20=\x20[]))\x20else\x20.\x20end)\x20catch\x20$o'
+response if ${url} ~= /^https:\/\/pan\.baidu\.com\/rest\/\d\.\d\/membership\/user\?/i then response.json.jq(". as $o | try (if .reminder then (.reminder |= (.advertiseContent = [])) else . end) catch $o")
+# NAD SDK 配置 afdconf：nad_* 开关全部置 0（预加载/开屏查询/数据回调）
+response if ${url} ~= /^https:\/\/afdconf\.baidu\.com\/afd\/platform\?/i then response.json.jq(". as $o | try (if .data.global then (.data.global |= with_entries(if .key|test(\"^nad_\") then .value=\"0\" else . end)) else . end) catch $o")
+# 广告推广 afd.baidu.com/afd/entry（sooyaaabo 覆盖的域名）
+response if ${url} ~= /^https?:\/\/afd\.baidu\.com\/afd\/entry/i then response.json.jq(". as $o | try (if .data then (.data = {}) else . end) catch $o")
 
-# ═══════════════════════════════════════════════════════════════
-# NAD SDK 配置域 afdconf.baidu.com（独立 MITM 域）
-# nad_preload_enable=1（预加载）+ nad_splash_* 系列开关全部置 0
-# ═══════════════════════════════════════════════════════════════
-^https?:\/\/afdconf\.baidu\.com\/afd\/platform(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.data.global\x20then\x20(.data.global\x20|=\x20with_entries(if\x20.key|test("^nad_")\x20then\x20.value="0"\x20else\x20.\x20end))\x20else\x20.\x20end)\x20catch\x20$o'
-
-[MITM]
-hostname = pan.baidu.com, afdconf.baidu.com
+[Mitm]
+hostname = pan.baidu.com, afdconf.baidu.com, afd.baidu.com
