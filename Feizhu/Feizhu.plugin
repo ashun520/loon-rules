@@ -39,6 +39,8 @@ AND,((DOMAIN-SUFFIX,tanx.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN-SUFFIX,alimama.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,acs.m.taobao.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,guide-acs.m.taobao.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,acs.m.fliggy.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN,guide-acs.m.fliggy.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,market.m.taobao.com),(PROTOCOL,QUIC)),REJECT
 AND,((DOMAIN,dorangesource.alicdn.com),(PROTOCOL,QUIC)),REJECT
 
@@ -77,6 +79,12 @@ http-response ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.(
 # 开屏接口请求头去掉 zstd，否则响应体无法被脚本按 JSON 解析
 http-request ^https?:\/\/(?:acs|guide-acs)\.m\.taobao\.com\/gw\/mtop\.fliggy\.(?:crm\.[^\s]*|(?:screen|splash|ad|advert|brand|allresource|predict|emergencyshutdown)[^\s]*)$ requires-header=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_strip_zstd.js?v=20261114b, timeout=10, tag=飞猪开屏请求头处理
 
+# ===== 配置层清洗（2026-11-27 新增）=====
+# 不拦素材、不碰 CDN，直接把 mtop 返回里的广告节点删掉。
+# App 拿不到开屏配置 → 不会下载、不会截图缓存 → 换素材/换活动都无效。
+# 覆盖 mtop.trip.* / mtop.fliggy.* 下命名空间含 screen|splash|tms|advert 等关键词的接口。
+http-response ^https?:\/\/(?:acs|guide-acs|h5api)\.m\.(?:taobao|fliggy)\.com\/gw\/mtop\.(?:trip|fliggy)\.[^\s]*(?:\.|\/)(?:splash|kaiping|welcome|startup|advert|tms|screen|adinfo|ad_list|adlist)[^\s]*$ requires-body=1, script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/Feizhu/fliggy_splash_clean.js?v=20261127, max-size=10485760, timeout=30, tag=飞猪开屏配置清洗
+
 # ===== 开屏页熔断（2026-11-14 / 2026-11-25 两次抓包实证）=====
 # 开屏容器 page://cache_splashScreen 会加载 outfliggys 的 pcraft 营销页（collect-energy-daily 等，
 # HTML 275–341KB，连带前端资源约 2MB），这是 v4 之后仍在重复出现的那条广告。
@@ -103,7 +111,7 @@ http-request ^https?:\/\/outfliggys\.m\.taobao\.com\/[^\s]*\/page\/pcraft\/pcraf
 ^https?:\/\/acs\.m\.taobao\.com\/gw\/mtop\.trip\.train\.homepage\/1\.0(\?.*)?$ response-body-json-jq '. as $o | try (if .data.holidayMarketingModule then del(.data.holidayMarketingModule) else . end) catch $o'
 
 [MITM]
-hostname = acs.m.taobao.com, guide-acs.m.taobao.com, market.m.taobao.com, dorangesource.alicdn.com, tbexpand.alicdn.com, outfliggys.m.taobao.com
+hostname = acs.m.taobao.com, guide-acs.m.taobao.com, h5api.m.taobao.com, market.m.taobao.com, acs.m.fliggy.com, guide-acs.m.fliggy.com, dorangesource.alicdn.com, tbexpand.alicdn.com, outfliggys.m.taobao.com
 
 # 说明：
 # 1. acs.m.taobao.com / guide-acs.m.taobao.com 是阿里 MTOP 网关，淘宝/闲鱼也在用。
