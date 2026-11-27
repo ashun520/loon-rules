@@ -1,5 +1,5 @@
 #!name = 百度网盘去广告
-#!desc = 百度网盘 iOS 去广告：插件规则可直接压过订阅规则（无需额外规则集）。拦截独立广告域 + MITM 改写开屏配置 buy/ad/conf（mode=0）+ 素材 iSpt/倒计时 REJECT 保险。装完杀掉 App 重开。
+#!desc = 百度网盘 iOS 去广告 v2：4 层覆盖 ①独立广告域 REJECT（含 QUIC） ②MITM+jq 改写 buy/ad/conf(mode=0) ③NAD SDK afdconf 关掉 nad_* 开关 ④activityentry 干掉 pos=123开屏+159/160 Banner ⑤pcs/adv scene_list 置空 ⑥素材 iSpt/倒计时 REJECT 保险。装完杀掉 App 重开（首次可能需删缓存）。
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
 #!system = iOS,iPadOS
@@ -59,10 +59,20 @@ AND,((URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE
 # jq 表达式内空格必须写成 \x20，否则在第一个空格处被截断（不报错、静默失效）
 # 官方文档：https://nsloon.app/docs/Rewrite/ →「空格」一节
 [Rewrite]
+# ==== 主域 pan.baidu.com ====
 # 开屏配置：mode 改成 0（App 认为今天无开屏，不拉素材、不缓存）——HAR 实证该接口每次冷启动必请求
 ^https?:\/\/pan\.baidu\.com\/buy\/ad\/conf(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.data\x20then\x20(.data.mode\x20=\x200)\x20else\x20.\x20end)\x20catch\x20$o'
 # 场景/信息流广告配置：scene_list 置空（scene_id 10011 等全部关闭）
 ^https?:\/\/pan\.baidu\.com\/rest\/2\.0\/pcs\/adv(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.scene_list\x20then\x20(.scene_list\x20=\x20[])\x20else\x20.\x20end)\x20catch\x20$o'
+# 活动/弹窗配置：干掉开屏 pos=123 + 首页 Banner pos=159 + 我的 Banner pos=160
+# HAR 实证：30 条 popup_list，5 条 pos=123 带 splash_priority + 广告素材（%E5%BC%80%E5%B1%8F.jpg）；6 条 pos=159 + 6 条 pos=160 带 is_ad/ad_countdown/banner_sort
+^https?:\/\/pan\.baidu\.com\/act\/api\/activityentry(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.popup_list\x20then\x20(.popup_list\x20|=\x20[.[]\x20|\x20select(.show_position\x20!=\x20123\x20and\x20.show_position\x20!=\x20159\x20and\x20.show_position\x20!=\x20160)])\x20else\x20.\x20end)\x20catch\x20$o'
+# 会员中心接口：reminder.advertiseContent 置空（HAR 实测可能为空数组，但保险）
+^https?:\/\/pan\.baidu\.com\/rest\/2\.0\/membership\/user(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.reminder\x20then\x20(.reminder\x20|=\x20(.advertiseContent\x20=\x20[]))\x20else\x20.\x20end)\x20catch\x20$o'
 
-[Mitm]
-hostname = pan.baidu.com
+# ==== NAD SDK 配置域 afdconf.baidu.com ====
+# 关键开关：nad_preload_enable=1（预加载）、nad_splash_* 系列 —— 这些全部关掉，阻断 App 内部第二套开屏链路
+^https?:\/\/afdconf\.baidu\.com\/afd\/platform(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.data.global\x20then\x20(.data.global\x20|=\x20with_entries(if\x20.key|test("^nad_")\x20then\x20.value="0"\x20else\x20.\x20end))\x20else\x20.\x20end)\x20catch\x20$o'
+
+[MITM]
+hostname = pan.baidu.com, afdconf.baidu.com
