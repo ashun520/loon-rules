@@ -1,0 +1,24 @@
+# 百度网盘去广告规则集
+# 使用说明：在 Loon「规则」页面订阅本文件，并拖到规则集列表【最顶部】
+# （必须排在 China.list / GEOIP,CN 之前，否则国内广告域会先被 DIRECT 抢命中）
+# 来源：2026-11-27 HAR 抓包实证 + 百度已知广告域
+
+# ===== 独立广告域（纯规则层拦截，无需 MITM）=====
+DOMAIN-SUFFIX,yunxish.com,REJECT
+DOMAIN-SUFFIX,nuomi.com,REJECT
+DOMAIN-SUFFIX,iggrowth.cn,REJECT
+DOMAIN-SUFFIX,1rtb.net,REJECT
+DOMAIN-SUFFIX,hpplay.cn,REJECT
+DOMAIN-SUFFIX,eclick.baidu.com,REJECT
+DOMAIN-SUFFIX,oc.baidu.com,REJECT
+DOMAIN-SUFFIX,ocpa.baidu.com,REJECT
+DOMAIN-SUFFIX,ocpm.baidu.com,REJECT
+DOMAIN-SUFFIX,ad.baidu.com,REJECT
+DOMAIN-SUFFIX,cpro.baidustatic.com,REJECT
+DOMAIN-SUFFIX,mbd.baidu.com,REJECT
+DOMAIN-SUFFIX,pcsnetwork.netdisk.baidu.com,REJECT
+DOMAIN-SUFFIX,cp01-clouddisk-3.epc.baidu.com,REJECT
+DOMAIN-SUFFIX,issuecdn.baidupcs.com,REJECT
+
+# 广告上报接口（主域 buy/ad/ 前缀，纯上报无业务依赖）
+URL-REGEX,^https?://pan\.baidu\.com/buy/ad/,REJECT

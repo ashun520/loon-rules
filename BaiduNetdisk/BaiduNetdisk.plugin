@@ -1,10 +1,11 @@
 #!name = 百度网盘去广告
-#!desc = 百度网盘 iOS 去广告：拦截 yunxish/nuomi/1rtb/hpplay 等广告 SDK + MITM 清洗 adv 广告配置接口（scene_list 置空）
+#!desc = 百度网盘 iOS 去广告：MITM 清洗 adv 广告配置接口（scene_list 置空）。注意：域名拦截需另行订阅 BaiduNetdiskAds.list 规则集并置于规则列表最顶，否则会被 China.list 抢先 DIRECT 导致不生效。
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
 #!system = iOS,iPadOS
 #!loon_version = 3.5.1
 #!tag = 去广告,百度网盘
+#!icon = https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b0/89/79/b0897965-5e92-8511-c8f4-09e1f83ed465/AppIcon-0-0-1x_U007ephone-0-1-0-0-sRGB-85-220.png/512x512bb.jpg
 
 # ===== 独立广告域（纯规则层拦截，无需 MITM）=====
 # 来源：2026-11-27 HAR 抓包 + 百度已知广告域

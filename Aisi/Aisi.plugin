@@ -6,6 +6,7 @@
 #!loon_version = 3.5.1
 #!tag = 去广告,爱思助手
 #!type = normal
+#!icon = https://d-image.i4.cn/i4web/static2025/images/logo.png
 
 [Rule]
 # 开屏素材图（2026-11-27 抓包实证）：
