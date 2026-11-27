@@ -43,16 +43,16 @@ AND,((DOMAIN-SUFFIX,issuecdn.baidupcs.com),(PROTOCOL,QUIC)),REJECT
 
 # 广告上报接口（buy/ad/analytics 纯上报，无业务依赖，直接 REJECT）
 # 注意：开屏配置接口 /buy/ad/conf 绝不能 REJECT（会回退缓存素材），交给下方 Script 改写 mode=0
-URL-REGEX,"^https?://pan\.baidu\.com/buy/ad/analytics",REJECT
-AND,((URL-REGEX,"^https?://pan\.baidu\.com/buy/ad/analytics"),(PROTOCOL,QUIC)),REJECT
+URL-REGEX,^https?://pan\.baidu\.com/buy/ad/analytics,REJECT
+AND,((URL-REGEX,^https?://pan\.baidu\.com/buy/ad/analytics),(PROTOCOL,QUIC)),REJECT
 
 # 开屏素材保险（正常由配置层 mode=0 阻断，此条防接口轮换）
 # 2026-11-27 HAR 实证：staticsns.cdn.bcebos.com/amis/.../倒计时4_00000_iSpt_compressed.gif（489KB）
 # 该域同时承载正常资源（IOS首页角标上滑状态*.png），只按广告命名特征拦截，不整域 REJECT
-URL-REGEX,"^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*iSpt",REJECT
-AND,((URL-REGEX,"^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*iSpt"),(PROTOCOL,QUIC)),REJECT
-URL-REGEX,"^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE%A1%E6%97%B6",REJECT
-AND,((URL-REGEX,"^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE%A1%E6%97%B6"),(PROTOCOL,QUIC)),REJECT
+URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*iSpt,REJECT
+AND,((URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*iSpt),(PROTOCOL,QUIC)),REJECT
+URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE%A1%E6%97%B6,REJECT
+AND,((URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE%A1%E6%97%B6),(PROTOCOL,QUIC)),REJECT
 
 # ===== 主域广告配置接口（MITM + JS 清洗，不 REJECT）=====
 # 百度网盘 adv 广告配置接口：rest/2.0/pcs/adv?m=config
