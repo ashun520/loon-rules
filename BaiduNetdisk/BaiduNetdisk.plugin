@@ -54,12 +54,15 @@ AND,((URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*iSpt),(PROTOCOL
 URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE%A1%E6%97%B6,REJECT
 AND,((URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE%A1%E6%97%B6),(PROTOCOL,QUIC)),REJECT
 
-# ===== 主域广告配置接口（MITM + JS 清洗，不 REJECT）=====
-# 百度网盘 adv 广告配置接口：rest/2.0/pcs/adv?m=config
-# 返回 JSON 的 scene_list 是所有广告场景配置，置空即关闭
-# 参考：PLAYBOOK.md「四层优先级 → 配置层改写」
-[Script]
-http-response ^https?:\/\/pan\.baidu\.com\/(?:buy\/ad\/conf|rest\/2\.0\/pcs\/adv) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/BaiduNetdisk/baidu_cleaner.js?v=20261127b,timeout=30,tag=百度网盘广告清洗
+# ===== 主域广告配置接口（MITM + 声明式 jq 改写，不 REJECT）=====
+# 与飞猪插件同款写法（豆包验证的 Loon 旧版 Rewrite 语法）：
+# jq 表达式内空格必须写成 \x20，否则在第一个空格处被截断（不报错、静默失效）
+# 官方文档：https://nsloon.app/docs/Rewrite/ →「空格」一节
+[Rewrite]
+# 开屏配置：mode 改成 0（App 认为今天无开屏，不拉素材、不缓存）——HAR 实证该接口每次冷启动必请求
+^https?:\/\/pan\.baidu\.com\/buy\/ad\/conf(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.data\x20then\x20(.data.mode\x20=\x200)\x20else\x20.\x20end)\x20catch\x20$o'
+# 场景/信息流广告配置：scene_list 置空（scene_id 10011 等全部关闭）
+^https?:\/\/pan\.baidu\.com\/rest\/2\.0\/pcs\/adv(\?.*)?$ response-body-json-jq '.\x20as\x20$o\x20|\x20try\x20(if\x20.scene_list\x20then\x20(.scene_list\x20=\x20[])\x20else\x20.\x20end)\x20catch\x20$o'
 
 [Mitm]
 hostname = pan.baidu.com
