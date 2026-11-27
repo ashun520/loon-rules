@@ -1,6 +1,7 @@
 // 百度网盘广告清洗脚本
 // 匹配接口：pan.baidu.com 的广告配置接口
-// 清洗策略：清空 scene_list（主广告源）+ 删除通用广告字段
+//   - /buy/ad/conf        开屏广告配置 → mode 置 0（关闭开屏，App 不再拉素材）
+//   - /rest/2.0/pcs/adv   广告场景配置 → scene_list 置空
 // 设计原则：非 JSON / 解析失败 → 原样放行，绝不白屏
 (function () {
   var url = ($request && $request.url) || "";
@@ -8,6 +9,23 @@
   if (!body) { $done({}); return; }
   var obj;
   try { obj = JSON.parse(body); } catch (e) { $done({}); return; }
+
+  // --- 开屏广告配置接口：mode=0 = 无开屏 ---
+  // 2026-11-27 HAR 实证：buy/ad/conf 返回 {"errno":0,"data":{"mode":1,...}}
+  // mode:1 时 App 会拉取 staticsns.cdn.bcebos.com/amis/.../倒计时*_iSpt_compressed.gif 素材
+  if (url.indexOf("buy/ad/conf") >= 0) {
+    if (obj && typeof obj === "object" && obj.data && typeof obj.data === "object") {
+      obj.data.mode = 0;
+      obj.data.mode_v2 = 0;
+      if (obj.data.tag !== undefined) obj.data.tag = 0;
+      if (obj.data.tag_v2 !== undefined) obj.data.tag_v2 = 0;
+      if (obj.data.ecpm !== undefined) obj.data.ecpm = 0;
+      if (obj.data.ecpm_v2 !== undefined) obj.data.ecpm_v2 = 0;
+      if (obj.data.ecpm_v2_original !== undefined) obj.data.ecpm_v2_original = 0;
+    }
+    try { $done({ body: JSON.stringify(obj) }); } catch (e) { $done({}); }
+    return;
+  }
 
   // --- 通用广告字段名（命中即删除）---
   var AD_KEY = /^(ad|ads|ad_info|adinfo|advert|adverts|advertisement|ad_list|adlist|ad_card|adcard|ad_data|addata|ad_item|aditem|splash|splash_ad|startup_ad|launch_ad|open_screen|openscreen|open_ad|openad|promotion|promotions|promo|promo_info|brand_ad|brandad|brand_ads|brandAds|scene_list|sceneList|scenes|scene|ad_scene|adScene|ad_sdk|adsdk|ad_sdk_config|adSdkConfig|ad_sdk_setting|banner|banner_list|bannerList|pop_ad|popad|popup|pop_up|popup_ad|popupad|float_ad|floatad|guide_ad|guidead|guide_page|feed_ad|recommend_ad)$/i;

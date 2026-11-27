@@ -50,7 +50,7 @@ AND,((URL-REGEX,"^https?://pan\.baidu\.com/buy/ad/"),(PROTOCOL,QUIC)),REJECT
 # 返回 JSON 的 scene_list 是所有广告场景配置，置空即关闭
 # 参考：PLAYBOOK.md「四层优先级 → 配置层改写」
 [Script]
-http-response ^https?:\/\/pan\.baidu\.com\/[^\s]*(?:adv|ad|splash|startup|launch)[^\s]*$ requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/BaiduNetdisk/baidu_cleaner.js?v=20261127,timeout=30,tag=百度网盘广告清洗
+http-response ^https?:\/\/pan\.baidu\.com\/(?:buy\/ad\/conf|rest\/2\.0\/pcs\/adv) requires-body=1,script-path=https://raw.githubusercontent.com/ashun520/loon-rules/main/BaiduNetdisk/baidu_cleaner.js?v=20261127b,timeout=30,tag=百度网盘广告清洗
 
 [Mitm]
 hostname = pan.baidu.com

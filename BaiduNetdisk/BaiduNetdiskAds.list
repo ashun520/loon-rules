@@ -20,5 +20,12 @@ DOMAIN-SUFFIX,pcsnetwork.netdisk.baidu.com,REJECT
 DOMAIN-SUFFIX,cp01-clouddisk-3.epc.baidu.com,REJECT
 DOMAIN-SUFFIX,issuecdn.baidupcs.com,REJECT
 
-# 广告上报接口（主域 buy/ad/ 前缀，纯上报无业务依赖）
-URL-REGEX,^https?://pan\.baidu\.com/buy/ad/,REJECT
+# 广告上报接口（纯上报，无业务依赖，直接 REJECT）
+# 注意：开屏配置接口 /buy/ad/conf 不能 REJECT（会回退缓存素材），由插件脚本改写 mode=0
+URL-REGEX,^https?://pan\.baidu\.com/buy/ad/analytics,REJECT
+
+# ===== 开屏素材保险（正常情况由配置层 mode=0 阻断，此条防接口轮换）=====
+# 2026-11-27 HAR 实证：staticsns.cdn.bcebos.com/amis/.../倒计时4_00000_iSpt_compressed.gif（489KB×8次）
+# 该域同时承载正常资源（IOS首页角标上滑状态*.png），故只按广告命名特征拦截，不整域 REJECT
+URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*iSpt,REJECT
+URL-REGEX,^https?://staticsns\.cdn\.bcebos\.com/amis/[^\s]*%E5%80%92%E8%AE%A1%E6%97%B6,REJECT
