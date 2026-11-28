@@ -1,5 +1,5 @@
 #!name = 百度网盘去广告
-#!desc = 百度网盘 iOS 去广告 v5：全面改用 Loon 新版语法（request if/response if）。参考 sooyaaabo/kelee/chxm1023 方案，reject_dict 对 activityentry/pcs-adv/getconfig/getsyscfg/tasklist/plugin-get/recommend 直接返回空 JSON；response.json.jq 改写 buy/ad/conf mode=0、afdconf nad_* 置 0、feed/kingkongdistrict+feed/cardinfos 过滤广告类型。新增 afd.baidu.com 域名覆盖 + 启动弹窗/设置信息流/热搜/搜索填词/金币乐园/短剧 reject。MITM 覆盖 pan.baidu.com / afdconf.baidu.com / afd.baidu.com。装完杀 App 重开，建议卸载重装清旧缓存。
+#!desc = 百度网盘 iOS 去广告 v6：buy/ad/conf 追加 mode_v2/tag/tag_v2 置 0（HAR 实证 mode=0 但 mode_v2 仍为 1，App 新版可能看 mode_v2）；membership/product 广告开关（secondary_ad_video 等）置 0。其余同 v5：reject_dict 清空 activityentry/pcs-adv/getconfig 等，jq 改写 afdconf nad_*、feed 过滤，QUIC 禁用 + 独立广告域 + 素材 URL 拦截兜底。MITM 覆盖 pan.baidu.com / afdconf.baidu.com / afd.baidu.com。
 #!author = ashun520
 #!homepage = https://github.com/ashun520/loon-rules
 #!system = iOS,iPadOS
@@ -97,9 +97,9 @@ request if ${url} ~= /^https:\/\/pan\.baidu\.com\/queryintent\/queryhint/i then 
 request if ${url} ~= /^https:\/\/pan\.baidu\.com\/coins\/center\/notice/i then reject(200)
 
 # ═══ response.json.jq 改写层（需要保留非广告字段）═══
-# 开屏配置 mode=0（双重保险：就算 activityentry reject_dict 漏了，这个让 App 不启动开屏流程）
-# HAR 实证该接口每次冷启动必请求，返回 data.mode（1=播放 0=不播放）
-response if ${url} ~= /^https:\/\/pan\.baidu\.com\/buy\/ad\/conf\?/i then response.json.jq(". as $o | try (if .data then (.data.mode = 0) else . end) catch $o")
+# 开屏配置：mode + mode_v2 + tag + tag_v2 全置 0
+# HAR 实证：mode 已被改 0 但 mode_v2 仍为 1 → App 新版可能看 mode_v2 判断是否播开屏
+response if ${url} ~= /^https:\/\/pan\.baidu\.com\/buy\/ad\/conf\?/i then response.json.jq(". as $o | try (if .data then (.data |= (.mode=0 | .mode_v2=0 | .tag=0 | .tag_v2=0)) else . end) catch $o")
 # 首页信息流 kingkongdistrict：过滤小说/短剧/打印/招聘广告类型（kelee 同改）
 response if ${url} ~= /^https:\/\/pan\.baidu\.com\/feed\/kingkongdistrict\?/i then response.json.jq(".data.data |= map(select(.type != \"novel\" and .type != \"shortplay\" and .type != \"print\" and .type != \"job_hunt\"))")
 # 首页信息流 cardinfos：过滤广告卡片（sooyaaabo 同改）
@@ -110,6 +110,8 @@ response if ${url} ~= /^https:\/\/pan\.baidu\.com\/rest\/\d\.\d\/membership\/use
 response if ${url} ~= /^https:\/\/afdconf\.baidu\.com\/afd\/platform\?/i then response.json.jq(". as $o | try (if .data.global then (.data.global |= with_entries(if .key|test(\"^nad_\") then .value=\"0\" else . end)) else . end) catch $o")
 # 广告推广 afd.baidu.com/afd/entry（sooyaaabo 覆盖的域名）
 response if ${url} ~= /^https?:\/\/afd\.baidu\.com\/afd\/entry/i then response.json.jq(". as $o | try (if .data then (.data = {}) else . end) catch $o")
+# 会员产品配置：广告相关开关置 0（secondary_ad_video 副广告视频 / scan_half_screen 半屏广告引导 等）
+response if ${url} ~= /^https:\/\/pan\.baidu\.com\/rest\/\d\.\d\/membership\/product\?/i then response.json.jq(". as $o | try (if .data then (.data |= with_entries(if .key|test(\"ad|scan_half|video_speedup|fe_volume|guide\") then .value=\"0\" else . end)) else . end) catch $o")
 
 [Mitm]
 hostname = pan.baidu.com, afdconf.baidu.com, afd.baidu.com
